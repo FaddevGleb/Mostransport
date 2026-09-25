@@ -219,7 +219,7 @@ const TramDemand = (() => {
       title: "Спартак — ЦСКА",
       place: "Лужники",
       time: "сегодня, 19:00",
-      routes: ["14", "26", "39"],
+      routes: ["26", "1"],
       note: "Наплыв после финального свистка",
     },
     {
@@ -229,7 +229,7 @@ const TramDemand = (() => {
       title: "Городской парад",
       place: "Тверская улица",
       time: "завтра, 11:00",
-      routes: ["А", "7", "50"],
+      routes: ["7", "50"],
       note: "Перекрытие участка, удлинение рейса",
     },
     {
@@ -239,7 +239,7 @@ const TramDemand = (() => {
       title: "Закрытие «Сокол»",
       place: "Замоскворецкая линия",
       time: "до 22:00",
-      routes: ["6", "15", "23", "27"],
+      routes: ["28"],
       note: "Пересадка на трамвай в обход станции",
     },
     {
@@ -249,7 +249,7 @@ const TramDemand = (() => {
       title: "Сход вагона на стрелке",
       place: "Проспект Мира",
       time: "сейчас",
-      routes: ["7", "4"],
+      routes: ["7", "50"],
       note: "Движение ограничено, интервал 18 мин",
     },
     {
@@ -259,7 +259,7 @@ const TramDemand = (() => {
       title: "Замена путей",
       place: "Щукинская",
       time: "до воскресенья",
-      routes: ["10", "21", "15"],
+      routes: ["28"],
       note: "Короткий оборот у метро",
     },
     {
@@ -274,7 +274,24 @@ const TramDemand = (() => {
     },
   ];
 
-  return { DISTRICTS, EVENTS, ICONS, demandFor, contextFor, loadTone, formatLoad, formatPassengers, formatHour };
+  const TRAFFIC = [
+    ["Садовое кольцо", 8, 14],
+    ["Ленинградский проспект", 6, 9],
+    ["Волгоградский проспект", 7, 11],
+    ["Шоссе Энтузиастов", 5, 7],
+    ["Проспект Мира", 4, 5],
+    ["Варшавское шоссе", 9, 18],
+  ].map(([name, score, delay]) => ({ name, score, delay }));
+
+  const PRODUCTION = [
+    { tone: "ok", typeLabel: "Выпуск", title: "Депо имени Апакова", time: "сегодня, 05:40", note: "На линию вышло 42 вагона из 46" },
+    { tone: "warm", typeLabel: "Контактная сеть", title: "Ремонт на Стромынке", time: "до 16:00", note: "Скорость ограничена до 15 км/ч" },
+    { tone: "ok", typeLabel: "Бригады", title: "Смена водителей", time: "сегодня, 20:00", note: "Пересменка на конечных 11 и 17" },
+    { tone: "warm", typeLabel: "Депо", title: "Плановый осмотр", time: "депо Баумана", note: "3 вагона сняты с маршрута 7" },
+    { tone: "hot", typeLabel: "Выпуск", title: "Недовыпуск из Октябрьского", time: "сейчас", note: "Не хватает 6 вагонов на маршрутах 11 и 17" },
+  ];
+
+  return { DISTRICTS, EVENTS, TRAFFIC, PRODUCTION, ICONS, demandFor, contextFor, loadTone, formatLoad, formatPassengers, formatHour };
 })();
 
 window.TramDemand = TramDemand;

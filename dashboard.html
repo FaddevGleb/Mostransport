@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Загрузка трамвайной сети</title>
-    <link rel="stylesheet" href="./styles.css?v=20260925-square" />
+    <link rel="stylesheet" href="./styles.css?v=20260925-routes9" />
   </head>
   <body>
     <div class="app-shell dashboard-page">
@@ -27,7 +27,7 @@
       </header>
       <main class="workspace">
         <section class="summary-row" id="summary"></section>
-        <div class="dashboard-wrap">
+        <div class="split-row" data-split="overview">
           <section class="panel-block">
             <p class="section-label">Рейтинг</p>
             <h2>Пик ближайших 12 часов</h2>
@@ -38,20 +38,55 @@
               <span><i class="hot"></i>больше 100%</span>
             </div>
           </section>
+          <div class="split-gutter" data-index="0" role="separator" aria-orientation="vertical" aria-label="Изменить ширину рейтинга и событий"></div>
           <section class="panel-block events-column">
             <p class="section-label">Сеть</p>
             <h2>События и сбои</h2>
             <div id="events" class="event-list"></div>
           </section>
+          <div class="split-gutter" data-index="1" role="separator" aria-orientation="vertical" aria-label="Изменить ширину событий и погоды"></div>
           <section class="panel-block weather-column">
             <p class="section-label">Город</p>
             <h2>Погода по районам</h2>
             <div id="weather" class="weather-list"></div>
           </section>
         </div>
+        <div class="split-row" data-split="operations">
+          <section class="panel-block">
+            <p class="section-label">Дороги</p>
+            <h2>Пробки</h2>
+            <div id="traffic" class="traffic-list"></div>
+          </section>
+          <div class="split-gutter" data-index="0" role="separator" aria-orientation="vertical" aria-label="Изменить ширину пробок и производства"></div>
+          <section class="panel-block">
+            <p class="section-label">Депо</p>
+            <h2>Производственные события</h2>
+            <div id="production" class="event-list"></div>
+          </section>
+          <div class="split-gutter" data-index="1" role="separator" aria-orientation="vertical" aria-label="Изменить ширину производства и остановок"></div>
+          <section class="panel-block">
+            <p class="section-label">Сеть</p>
+            <h2>Остановки</h2>
+            <div id="stations" class="station-list"></div>
+          </section>
+        </div>
+        <section class="panel-block analytics-panel">
+          <p class="section-label">Сводка</p>
+          <h2>Аналитика сети</h2>
+          <div class="analytics-grid">
+            <div>
+              <p class="demand-caption">Распределение загрузки</p>
+              <div id="load-mix" class="mix-list"></div>
+            </div>
+            <div>
+              <p class="demand-caption">Пассажиры сети, ближайшие 12 часов</p>
+              <div id="network-hours" class="hour-chart network-chart"></div>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
-    <script src="./demand.js?v=20260925-events"></script>
-    <script src="./dashboard.js?v=20260925-events"></script>
+    <script src="./demand.js?v=20260925-routes9"></script>
+    <script src="./dashboard.js?v=20260925-routes9"></script>
   </body>
 </html>
