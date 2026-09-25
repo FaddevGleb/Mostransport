@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Загрузка трамвайной сети</title>
+    <link rel="stylesheet" href="./styles.css?v=20260925-square" />
+  </head>
+  <body>
+    <div class="app-shell dashboard-page">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">Т</div>
+          <div>
+            <p class="eyebrow">МОСТРАНСПОРТ · ПРОГНОЗ</p>
+            <h1>Загрузка сети</h1>
+          </div>
+        </div>
+        <nav class="page-nav" aria-label="Разделы">
+          <a class="nav-link" href="./index.html">Карта</a>
+          <a class="nav-link active" href="./dashboard.html">Дашборд</a>
+        </nav>
+        <div class="topbar-meta">
+          <span class="live-dot"></span>
+          <span>Модельные данные</span>
+        </div>
+      </header>
+      <main class="workspace">
+        <section class="summary-row" id="summary"></section>
+        <div class="dashboard-wrap">
+          <section class="panel-block">
+            <p class="section-label">Рейтинг</p>
+            <h2>Пик ближайших 12 часов</h2>
+            <div id="ranking" class="rank-list"></div>
+            <div class="legend">
+              <span><i class="ok"></i>меньше 80%</span>
+              <span><i class="warm"></i>80–100%</span>
+              <span><i class="hot"></i>больше 100%</span>
+            </div>
+          </section>
+          <section class="panel-block events-column">
+            <p class="section-label">Сеть</p>
+            <h2>События и сбои</h2>
+            <div id="events" class="event-list"></div>
+          </section>
+          <section class="panel-block weather-column">
+            <p class="section-label">Город</p>
+            <h2>Погода по районам</h2>
+            <div id="weather" class="weather-list"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script src="./demand.js?v=20260925-events"></script>
+    <script src="./dashboard.js?v=20260925-events"></script>
+  </body>
+</html>

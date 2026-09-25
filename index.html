@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#e63946" />
+    <title>Трамваи Москвы · GTFS Explorer</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260925-square" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">Т</div>
+          <div>
+            <p class="eyebrow">МОСТРАНСПОРТ · OPEN DATA</p>
+            <h1>Трамваи Москвы</h1>
+          </div>
+        </div>
+        <nav class="page-nav" aria-label="Разделы">
+          <a class="nav-link active" href="./index.html">Карта</a>
+          <a class="nav-link" href="./dashboard.html">Дашборд</a>
+        </nav>
+        <div class="topbar-meta">
+          <span class="live-dot"></span>
+          <span id="data-status">Готов к загрузке</span>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="sidebar">
+          <section class="route-section">
+            <div class="section-heading route-heading">
+              <div>
+                <span class="section-label">Сеть маршрутов</span>
+                <h3><span id="route-count">0</span> линий</h3>
+              </div>
+            </div>
+            <div class="search-wrap">
+              <span class="search-icon">⌕</span>
+              <input id="route-search" class="text-input search-input" placeholder="Найти маршрут или остановку" />
+              <kbd>/</kbd>
+            </div>
+            <div id="route-list" class="route-list" aria-live="polite"></div>
+          </section>
+
+          <div class="sidebar-footer">
+            <div class="legend-row"><span class="legend-line"></span><span>Трамвайный маршрут</span></div>
+            <div class="legend-row"><span class="legend-stop"></span><span>Остановка</span></div>
+            <p>Карта © OpenStreetMap contributors</p>
+          </div>
+        </aside>
+
+        <section class="map-area">
+          <div id="map" aria-label="Карта трамвайных маршрутов Москвы"></div>
+          <div class="map-overlay top-left">
+            <div class="map-chip"><span class="chip-pulse"></span> Москва · внутри МКАД</div>
+          </div>
+          <div class="map-overlay top-right">
+            <button id="toggle-stops" class="map-control active" title="Показать остановки">●</button>
+          </div>
+          <div id="route-details" class="route-details hidden">
+            <button id="close-details" class="close-button" aria-label="Закрыть">×</button>
+            <div class="detail-route-number" id="detail-number">—</div>
+            <div>
+              <p class="section-label">Выбранный маршрут</p>
+              <h3 id="detail-name">—</h3>
+            </div>
+            <div class="detail-grid">
+              <div><strong id="detail-stops">0</strong><span>остановок</span></div>
+              <div><strong id="detail-length">—</strong><span>примерная длина</span></div>
+              <div><strong id="detail-direction">—</strong><span>направление</span></div>
+            </div>
+            <section class="demand-board" id="demand-board">
+              <div class="demand-head">
+                <div>
+                  <p class="section-label">Сейчас за час</p>
+                  <strong id="demand-now">—</strong>
+                  <span>пассажиров · модельный прогноз</span>
+                </div>
+                <span id="demand-load" class="load-pill">—</span>
+              </div>
+              <p class="demand-caption">Прогноз на следующие 12 часов</p>
+              <div id="demand-today" class="hour-chart"></div>
+              <p class="demand-caption">Следующий день</p>
+              <div id="demand-tomorrow" class="tomorrow-card"></div>
+              <p class="demand-caption">Пик на неделю вперёд</p>
+              <div id="demand-week" class="hour-chart week-chart"></div>
+            </section>
+            <p class="demand-caption">Рядом с маршрутом</p>
+            <div id="demand-context" class="factor-grid"></div>
+          </div>
+          <div class="map-footer">
+            <div class="stats">
+              <div><span class="stat-value" id="stat-routes">0</span><span class="stat-label">маршрутов</span></div>
+              <div><span class="stat-value" id="stat-stops">0</span><span class="stat-label">остановок</span></div>
+              <div><span class="stat-value" id="stat-distance">0</span><span class="stat-label">км пути</span></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status"></div>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="./demand.js?v=20260925-factors2"></script>
+    <script src="./app.js?v=20260925-factors2"></script>
+  </body>
+</html>
