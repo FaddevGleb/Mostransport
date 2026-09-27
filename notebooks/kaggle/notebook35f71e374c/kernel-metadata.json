@@ -13,7 +13,8 @@
   "dataset_sources": [
     "kirillvorotnikov2007/mstrans",
     "sauzzeth/mstrans-enrichment",
-    "sauzzeth/mstrans-lstm-tcn-code"
+    "sauzzeth/mstrans-lstm-tcn-code",
+    "sauzzeth/mstrans-lstm-tcn-frozen"
   ],
   "kernel_sources": [],
   "competition_sources": [],
