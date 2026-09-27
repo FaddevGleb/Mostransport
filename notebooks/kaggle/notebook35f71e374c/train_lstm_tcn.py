@@ -763,29 +763,30 @@ def scale_forecast(raw: RawForecast, scaler: FeatureScaler) -> RawForecast:
     )
 
 
-class HorizonDataset(Dataset):
+class SequenceDataset(Dataset):
+    """One item is a full route sequence; the encoder runs once for every horizon."""
+
     def __init__(self, raw: RawForecast):
+        if not bool(raw.masks.any()):
+            raise ValueError("Dataset has no valid target pairs")
         self.sequences = torch.from_numpy(raw.sequences)
         self.futures = torch.from_numpy(raw.futures)
         self.targets = torch.from_numpy(raw.targets)
         self.baselines = torch.from_numpy(raw.baselines)
+        self.masks = torch.from_numpy(raw.masks.astype(np.bool_))
         self.route_ids = torch.from_numpy(raw.route_ids)
-        self.pairs = np.argwhere(raw.masks)
-        if len(self.pairs) == 0:
-            raise ValueError("Dataset has no valid target pairs")
 
     def __len__(self) -> int:
-        return len(self.pairs)
+        return int(self.sequences.shape[0])
 
     def __getitem__(self, index: int) -> tuple[torch.Tensor, ...]:
-        base_index, horizon = self.pairs[index]
         return (
-            self.sequences[base_index],
-            self.futures[base_index, horizon],
-            torch.tensor(horizon, dtype=torch.long),
-            self.targets[base_index, horizon],
-            self.baselines[base_index, horizon],
-            self.route_ids[base_index],
+            self.sequences[index],
+            self.futures[index],
+            self.targets[index],
+            self.baselines[index],
+            self.masks[index],
+            self.route_ids[index],
         )
 
 
@@ -883,9 +884,9 @@ class ParallelLSTMTCN(nn.Module):
             nn.Dropout(dropout),
         )
         self.attention_query = nn.Linear(fusion_dim, fusion_dim)
-        route_dim = max(8, fusion_dim // 4)
+        self.route_dim = max(8, fusion_dim // 4)
         self.head = nn.Sequential(
-            nn.Linear(fusion_dim + future_dim + fusion_dim + route_dim, fusion_dim * 2),
+            nn.Linear(fusion_dim + future_dim + fusion_dim + self.route_dim, fusion_dim * 2),
             nn.LayerNorm(fusion_dim * 2),
             nn.GELU(),
             nn.Dropout(dropout),
@@ -894,16 +895,10 @@ class ParallelLSTMTCN(nn.Module):
             nn.Linear(fusion_dim, 1),
         )
 
-    def forward(
-        self,
-        sequence: torch.Tensor,
-        future_features: torch.Tensor,
-        horizon: torch.Tensor,
-        route_ids: torch.Tensor,
-    ) -> torch.Tensor:
+    def encode(self, sequence: torch.Tensor) -> torch.Tensor:
         lstm_values, _ = self.lstm(sequence)
         tcn_values = self.tcn(sequence)
-        fused = self.fusion(
+        return self.fusion(
             torch.cat(
                 [
                     self.lstm_projection(lstm_values),
@@ -912,17 +907,52 @@ class ParallelLSTMTCN(nn.Module):
                 dim=-1,
             )
         )
+
+    def decode(
+        self,
+        fused: torch.Tensor,
+        future_features: torch.Tensor,
+        horizon: torch.Tensor,
+        route_ids: torch.Tensor,
+    ) -> torch.Tensor:
+        if future_features.dim() == 2:
+            horizon_values = self.horizon_embedding(horizon)
+            query = self.attention_query(horizon_values).unsqueeze(1)
+            scores = (fused * query).sum(dim=-1) / math.sqrt(fused.shape[-1])
+            attention = torch.softmax(scores, dim=1)
+            context = (fused * attention.unsqueeze(-1)).sum(dim=1)
+            route_values = self.route_embedding(route_ids)
+            values = torch.cat(
+                [context, future_features, horizon_values, route_values],
+                dim=-1,
+            )
+            return self.head(values).squeeze(-1)
+
         horizon_values = self.horizon_embedding(horizon)
-        query = self.attention_query(horizon_values).unsqueeze(1)
-        scores = (fused * query).sum(dim=-1) / math.sqrt(fused.shape[-1])
-        attention = torch.softmax(scores, dim=1)
-        context = (fused * attention.unsqueeze(-1)).sum(dim=1)
-        route_values = self.route_embedding(route_ids)
+        query = self.attention_query(horizon_values)
+        scores = torch.einsum("btf,hf->bht", fused, query) / math.sqrt(fused.shape[-1])
+        attention = torch.softmax(scores, dim=-1)
+        context = torch.einsum("bht,btf->bhf", attention, fused)
+        route_values = self.route_embedding(route_ids).unsqueeze(1).expand(
+            -1,
+            context.shape[1],
+            -1,
+        )
+        expanded_horizon = horizon_values.unsqueeze(0).expand(fused.shape[0], -1, -1)
         values = torch.cat(
-            [context, future_features, horizon_values, route_values],
+            [context, future_features, expanded_horizon, route_values],
             dim=-1,
         )
         return self.head(values).squeeze(-1)
+
+    def forward(
+        self,
+        sequence: torch.Tensor,
+        future_features: torch.Tensor,
+        horizon: torch.Tensor,
+        route_ids: torch.Tensor,
+    ) -> torch.Tensor:
+        return self.decode(self.encode(sequence), future_features, horizon, route_ids)
 
 
 def prediction_from_delta(
@@ -939,14 +969,29 @@ def make_loader(
     batch_size: int,
     shuffle: bool,
 ) -> DataLoader:
+    dataset = SequenceDataset(raw)
     return DataLoader(
-        HorizonDataset(raw),
-        batch_size=batch_size,
+        dataset,
+        batch_size=min(10, max(1, batch_size), len(dataset)),
         shuffle=shuffle,
         num_workers=0,
         pin_memory=torch.cuda.is_available(),
         drop_last=False,
     )
+
+
+def masked_point_loss(
+    predicted: torch.Tensor,
+    target: torch.Tensor,
+    mask: torch.Tensor,
+    loss_kind: str,
+) -> torch.Tensor:
+    if loss_kind == "l1":
+        point = (predicted - target).abs()
+    else:
+        point = F.smooth_l1_loss(predicted, target, beta=1.0, reduction="none")
+    weights = mask.to(point.dtype)
+    return (point * weights).sum() / weights.sum().clamp_min(1.0)
 
 
 def autocast_context(device: torch.device):
@@ -977,21 +1022,19 @@ def train_one_epoch(
     model.train()
     total_loss = 0.0
     total_items = 0
-    for sequence, future, horizon, target, baseline, route_ids in loader:
+    horizons = torch.arange(HORIZON, device=device)
+    for sequence, future, target, baseline, mask, route_ids in loader:
         sequence = sequence.to(device, non_blocking=True)
         future = future.to(device, non_blocking=True)
-        horizon = horizon.to(device, non_blocking=True)
         target = target.to(device, non_blocking=True)
         baseline = baseline.to(device, non_blocking=True)
+        mask = mask.to(device, non_blocking=True)
         route_ids = route_ids.to(device, non_blocking=True)
         optimizer.zero_grad(set_to_none=True)
         with autocast_context(device):
-            delta = model(sequence, future, horizon, route_ids)
+            delta = model(sequence, future, horizons, route_ids)
             predicted = prediction_from_delta(delta, baseline)
-            if loss_kind == "l1":
-                loss = F.l1_loss(predicted, target)
-            else:
-                loss = F.smooth_l1_loss(predicted, target, beta=1.0)
+            loss = masked_point_loss(predicted, target, mask, loss_kind)
         if scaler is not None and scaler.is_enabled():
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
@@ -1002,7 +1045,7 @@ def train_one_epoch(
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
-        items = int(target.numel())
+        items = int(mask.sum().item())
         total_loss += float(loss.detach().cpu()) * items
         total_items += items
     return total_loss / max(1, total_items)
@@ -1017,20 +1060,19 @@ def predict_prepared(
 ) -> tuple[np.ndarray, np.ndarray]:
     model.eval()
     loader = make_loader(raw, batch_size=batch_size, shuffle=False)
-    predictions: list[np.ndarray] = []
-    targets: list[np.ndarray] = []
-    for sequence, future, horizon, target, baseline, route_ids in loader:
+    horizons = torch.arange(HORIZON, device=device)
+    predicted_rows: list[np.ndarray] = []
+    for sequence, future, _target, baseline, _mask, route_ids in loader:
         sequence = sequence.to(device, non_blocking=True)
         future = future.to(device, non_blocking=True)
-        horizon = horizon.to(device, non_blocking=True)
         baseline = baseline.to(device, non_blocking=True)
         route_ids = route_ids.to(device, non_blocking=True)
         with autocast_context(device):
-            delta = model(sequence, future, horizon, route_ids)
+            delta = model(sequence, future, horizons, route_ids)
             predicted = prediction_from_delta(delta, baseline)
-        predictions.append(predicted.float().cpu().numpy())
-        targets.append(target.numpy())
-    return np.concatenate(predictions), np.concatenate(targets)
+        predicted_rows.append(predicted.float().cpu().numpy())
+    predicted_full = np.concatenate(predicted_rows, axis=0)
+    return predicted_full[raw.masks], raw.targets[raw.masks]
 
 
 def fit_model(
@@ -1509,6 +1551,168 @@ def train_final_and_predict(
     }
 
 
+def run_submission(
+    args: argparse.Namespace,
+    history: np.ndarray,
+    cache: PreparedCache,
+    device: torch.device,
+    output_dir: Path,
+) -> None:
+    """Train the planned architecture and write submission.csv.
+
+    The cancelled HPO run never reached the point where best_config.json is
+    written, so this uses the fixed default configuration: the first and
+    intended architecture, not a random later trial.
+    """
+
+    config = default_config()
+    epochs = max(1, int(args.hpo_epochs))
+    config["best_epoch"] = epochs
+    write_json(
+        output_dir / "best_config.json",
+        {
+            "source": "default_config",
+            "reason": "The cancelled Kaggle HPO run did not persist a completed trial.",
+            "config": config,
+        },
+    )
+    print(f"submission_config={json.dumps(config)}", flush=True)
+
+    calib_train_raw = cache.get(
+        config["feature_variant"],
+        config["baseline_kind"],
+        int(config["context"]),
+        weekly_origins(date(2025, 4, 30), date(2025, 6, 30)),
+        date(2025, 7, 31),
+    )
+    calib_val_raw = cache.get(
+        config["feature_variant"],
+        config["baseline_kind"],
+        int(config["context"]),
+        [date(2025, 7, 31)],
+        TRAIN_END,
+    )
+    calib_train, calib_val, _ = scale_pair(calib_train_raw, calib_val_raw)
+    calib_model, calib_fit = fit_model(
+        config,
+        calib_train,
+        calib_val,
+        device,
+        max_epochs=epochs,
+        patience=args.patience,
+        seed=args.seed,
+    )
+    calib_pred, calib_actual = predict_prepared(
+        calib_model,
+        calib_val,
+        batch_size=10,
+        device=device,
+    )
+    calib_baseline = calib_val.baselines[calib_val.masks]
+    blend_weight, blend_error = tune_blend_weight(
+        calib_actual,
+        calib_pred,
+        calib_baseline,
+    )
+    neural_error = wape(calib_actual, calib_pred)
+    print(
+        f"august_calibration neural_wape={neural_error:.5f} "
+        f"blend_wape={blend_error:.5f} weight={blend_weight:.2f}",
+        flush=True,
+    )
+    del calib_model
+    if device.type == "cuda":
+        torch.cuda.empty_cache()
+
+    outer_train_raw = cache.get(
+        config["feature_variant"],
+        config["baseline_kind"],
+        int(config["context"]),
+        weekly_origins(date(2025, 4, 30), date(2025, 7, 31)),
+        TRAIN_END,
+    )
+    outer_val_raw = cache.get(
+        config["feature_variant"],
+        config["baseline_kind"],
+        int(config["context"]),
+        [TRAIN_END],
+        TEST_END,
+    )
+    outer_train, outer_val, _ = scale_pair(outer_train_raw, outer_val_raw)
+    outer_model, _ = fit_model(
+        config,
+        outer_train,
+        None,
+        device,
+        max_epochs=epochs,
+        patience=args.patience,
+        seed=args.seed + 1000,
+    )
+    outer_pred, outer_actual = predict_prepared(
+        outer_model,
+        outer_val,
+        batch_size=10,
+        device=device,
+    )
+    outer_baseline = outer_val.baselines[outer_val.masks]
+    outer_neural = wape(outer_actual, outer_pred)
+    outer_blend = wape(
+        outer_actual,
+        blend_weight * outer_pred + (1.0 - blend_weight) * outer_baseline,
+    )
+    outer_metrics = {
+        "baseline": evaluate_baseline(outer_val_raw),
+        "neural": {"wape": outer_neural, "score": score_from_wape(outer_neural)},
+        "blend": {
+            "weight": blend_weight,
+            "wape": outer_blend,
+            "score": score_from_wape(outer_blend),
+        },
+    }
+    print(f"outer_metrics={json.dumps(outer_metrics)}", flush=True)
+    del outer_model
+    if device.type == "cuda":
+        torch.cuda.empty_cache()
+
+    final_result = train_final_and_predict(
+        config=config,
+        cache=cache,
+        history=history,
+        final_origins=weekly_origins(date(2025, 4, 30), date(2025, 9, 30)),
+        device=device,
+        epochs=epochs,
+        seed=args.seed + 2000,
+        repeats=1,
+        blend_weight=blend_weight,
+        output_dir=output_dir,
+    )
+    submission_path = Path(final_result["submission_path"])
+    working_copy = Path("/kaggle/working/submission.csv")
+    if working_copy.parent.exists() and submission_path.resolve() != working_copy.resolve():
+        working_copy.write_bytes(submission_path.read_bytes())
+    metrics = {
+        "device": str(device),
+        "config_source": "default_config",
+        "august_calibration": {
+            "neural_wape": neural_error,
+            "blend_wape": blend_error,
+            "blend_weight": blend_weight,
+            "history": calib_fit["history"],
+        },
+        "outer_sep_oct": outer_metrics,
+        "final_fit": final_result["fit_metrics"],
+        "submission_rows": 14_640,
+    }
+    write_json(output_dir / "validation_metrics.json", metrics)
+    write_json(
+        output_dir / "feature_schema.json",
+        {"features": final_result["feature_names"]},
+    )
+    write_json(output_dir / "scaler.json", final_result["scaler"].payload())
+    print(f"submission={submission_path}", flush=True)
+    print(json.dumps(metrics, ensure_ascii=False, indent=2), flush=True)
+
+
 def run_pipeline(args: argparse.Namespace) -> None:
     if args.trials < 1 or args.hpo_epochs < 1 or args.repeats < 1:
         raise ValueError("trials, hpo_epochs and repeats must be positive")
@@ -1526,6 +1730,9 @@ def run_pipeline(args: argparse.Namespace) -> None:
         flush=True,
     )
     cache = PreparedCache(history, tables)
+    if args.mode == "submission":
+        run_submission(args, history, cache, device, output_dir)
+        return
 
     hpo_fit_origins = weekly_origins(date(2025, 4, 30), date(2025, 5, 31))
     hpo_validation_origin = date(2025, 7, 31)
@@ -1675,6 +1882,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--patience", type=int, default=5)
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--seed", type=int, default=2025)
+    parser.add_argument(
+        "--mode",
+        choices=("search", "submission"),
+        default="search",
+    )
     return parser.parse_args()
 
 
