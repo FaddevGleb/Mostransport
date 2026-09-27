@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#e63946" />
     <title>Трамваи Москвы · GTFS Explorer</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="./styles.css?v=20260927-equal" />
+    <link rel="stylesheet" href="./styles.css?v=20260927-map" />
   </head>
   <body>
     <div class="app-shell">
@@ -21,7 +21,9 @@
         <nav class="page-nav" aria-label="Разделы">
           <a class="nav-link active" href="./index.html">Карта</a>
           <a class="nav-link" href="./dashboard.html">Дашборд</a>
-          <a class="nav-link" href="/logout">Выйти</a>
+          <form class="logout-form" method="post" action="/logout">
+            <button class="nav-link" type="submit">Выйти</button>
+          </form>
         </nav>
         <div class="topbar-meta">
           <span class="live-dot"></span>
@@ -32,12 +34,6 @@
       <main class="workspace">
         <aside class="sidebar">
           <section class="route-section">
-            <div class="section-heading route-heading">
-              <div>
-                <span class="section-label">Сеть маршрутов</span>
-                <h3><span id="route-count">0</span> линий</h3>
-              </div>
-            </div>
             <div class="search-wrap">
               <span class="search-icon">⌕</span>
               <input id="route-search" class="text-input search-input" placeholder="Найти маршрут или остановку" />
@@ -84,7 +80,6 @@
             <div class="detail-grid">
               <div><strong id="detail-stops">0</strong><span>остановок</span></div>
               <div><strong id="detail-length">—</strong><span>примерная длина</span></div>
-              <div><strong id="detail-direction">—</strong><span>направление</span></div>
             </div>
             <section class="demand-board" id="demand-board">
               <div class="horizon-switch" role="tablist" aria-label="Горизонт прогноза">
@@ -93,7 +88,7 @@
                 <button type="button" class="horizon-button" data-horizon="year">Год</button>
               </div>
               <div class="forecast-controls">
-                <label>Дата<input id="forecast-date" class="text-input compact" type="date" min="2025-01-01" max="2025-12-31" value="2025-11-03"></label>
+                <label>Дата<input id="forecast-date" class="text-input compact" type="date" min="2025-01-01" value="2025-11-03"></label>
                 <label>С<select id="hour-from" class="text-input compact" aria-label="Час начала"></select></label>
                 <label>по<select id="hour-to" class="text-input compact" aria-label="Час конца"></select></label>
               </div>
@@ -135,12 +130,6 @@
                       <option value="heavy">сильный дождь</option>
                     </select>
                   </label>
-                  <label>Событие
-                    <select id="scenario-event" class="text-input compact">
-                      <option value="off">нет</option>
-                      <option value="on">указать</option>
-                    </select>
-                  </label>
                   <label>Сезон
                     <select id="scenario-season" class="text-input compact">
                       <option value="base">как в прогнозе</option>
@@ -148,11 +137,10 @@
                     </select>
                   </label>
                 </div>
-                <div id="scenario-event-fields" class="forecast-controls hidden">
-                  <label>Место<input id="scenario-place" class="text-input compact" type="text" placeholder="место"></label>
-                  <label>Время<input id="scenario-time" class="text-input compact" type="text" placeholder="время"></label>
-                  <label>Коэф.<input id="scenario-event-coeff" class="text-input compact" type="text" inputmode="decimal" placeholder="1,10"></label>
-                </div>
+                <label class="forecast-segment">Коэффициент события
+                  <input id="scenario-event-coeff" class="text-input compact" type="text" inputmode="decimal" placeholder="1,00" aria-describedby="event-coeff-hint">
+                  <span id="event-coeff-hint" class="field-hint">множитель посадок, 0,50–2,00</span>
+                </label>
                 <label id="scenario-season-field" class="forecast-segment hidden">Свой сезонный коэффициент
                   <input id="scenario-season-coeff" class="text-input compact" type="text" inputmode="decimal" placeholder="1,00">
                 </label>
@@ -222,6 +210,6 @@
     <script src="./demand.js?v=20260927-fleet"></script>
     <script src="./facts.js?v=20260927-station-card"></script>
     <script src="./forecast.js?v=20260927-equal"></script>
-    <script src="./app.js?v=20260927-keep"></script>
+    <script src="./app.js?v=20260927-map"></script>
   </body>
 </html>

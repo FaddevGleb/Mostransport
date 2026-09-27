@@ -29,6 +29,7 @@ const state = {
   lineScale: 1,
   showStops: true,
   usingDemo: false,
+  mapFramed: false,
   forecast: {
     horizon: "day",
     date: "2025-11-03",
@@ -86,20 +87,21 @@ function setupMap() {
     preferCanvas: true,
     zoomSnap: 0.5,
     minZoom: MOSCOW_MAP_ZOOM,
-    maxZoom: MOSCOW_MAP_ZOOM,
+    maxZoom: 16,
     maxBounds: cityBounds,
     maxBoundsViscosity: 1,
-    zoomAnimation: false,
+    zoomAnimation: true,
     fadeAnimation: false,
     markerZoomAnimation: false,
     attributionControl: false,
-    dragging: false,
-    scrollWheelZoom: false,
-    doubleClickZoom: false,
+    dragging: true,
+    scrollWheelZoom: true,
+    doubleClickZoom: true,
     boxZoom: false,
     keyboard: false,
-    touchZoom: false,
+    touchZoom: true,
   }).setView(MOSCOW, MOSCOW_MAP_ZOOM);
+  L.control.zoom({ position: "topleft" }).addTo(state.map);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     updateWhenIdle: true,
@@ -108,22 +110,33 @@ function setupMap() {
   state.stopsLayer = L.layerGroup().addTo(state.map);
   window.addEventListener("resize", () => {
     state.map.invalidateSize({ pan: false });
-    frameMap();
   });
-  setTimeout(() => {
-    state.map.invalidateSize({ pan: false });
-    frameMap();
-  }, 250);
+  setTimeout(() => state.map.invalidateSize({ pan: false }), 250);
 }
 
 function frameMap() {
   const zoom = MOSCOW_MAP_ZOOM;
   const size = state.map.getSize();
-  if (!size.x || !size.y) return;
+  if (!size.x || !size.y) return false;
   const anchor = state.map.project(KRASNOGORSK, zoom);
   const latitude = state.map.project(MOSCOW, zoom);
   const center = state.map.unproject(L.point(anchor.x - KRASNOGORSK_INSET_PX + size.x / 2, latitude.y), zoom);
   state.map.setView(center, zoom, { animate: false });
+  return true;
+}
+
+function frameInitialMap() {
+  if (state.mapFramed) return;
+  const place = () => {
+    if (state.mapFramed) return;
+    state.map.invalidateSize({ pan: false });
+    if (!frameMap()) {
+      requestAnimationFrame(place);
+      return;
+    }
+    state.mapFramed = true;
+  };
+  requestAnimationFrame(place);
 }
 
 function bindEvents() {
@@ -149,7 +162,6 @@ function bindEvents() {
       sidebar.style.width = `${width}px`;
       sidebar.style.flexBasis = `${width}px`;
       state.map.invalidateSize({ pan: false });
-      frameMap();
     },
     next: (start, dx) => clamp(start + dx, 220, 560),
   });
@@ -614,6 +626,8 @@ function renderFeed(feed, usingDemo) {
   fitMap();
   selectFromHash();
   applySavedMapState();
+  if (!usingDemo) frameInitialMap();
+  else if (!state.mapFramed) frameMap();
 }
 
 function renderMap() {
@@ -806,7 +820,6 @@ function renderRouteList(query = "") {
     if (!normalizedQuery) return true;
     return `${route.route_short_name} ${route.route_long_name} ${stopsForRoute(route.route_id).map((stop) => stop.stop_name).join(" ")}`.toLowerCase().includes(normalizedQuery);
   });
-  $("#route-count").textContent = state.routes.length;
   list.innerHTML = routes.length ? routes.map((route) => {
     const stops = stopsForRoute(route.route_id);
     return `<button class="route-item ${route.route_id === state.selectedId ? "selected" : ""}" data-route-id="${route.route_id}">
@@ -830,7 +843,6 @@ function selectRoute(routeId) {
   $("#detail-name").textContent = route.route_long_name;
   $("#detail-stops").textContent = stops.length;
   $("#detail-length").textContent = `${routeDistance(stops).toFixed(1)} км`;
-  $("#detail-direction").textContent = route.direction === "1" ? "обратное" : "прямое";
   state.forecast.segment = "";
   syncSegmentOptions(stops);
   renderDemand(route);
@@ -1015,8 +1027,9 @@ function renderDemand(route) {
   $("#forecast-total-label").textContent = view.horizon === "day" ? "Посадки за выбранные часы" : view.horizon === "month" ? "Посадки за месяц" : "Посадки за год";
   $("#demand-now").textContent = TramForecast.formatCount(shownTotal);
   const load = $("#demand-load");
-  load.textContent = board.statusLabel;
-  load.className = `load-pill ${board.scenario.apply ? "warm" : board.rows.some((row) => row.status === "forecast" || row.status === "partial-forecast") ? "warm" : "ok"}`;
+  const forecastTone = board.rows.some((row) => row.status === "forecast" || row.status === "partial-forecast");
+  load.textContent = statusWithMultiplier(board);
+  load.className = `load-pill ${board.totalScenario == null ? "missing" : board.scenario.apply || forecastTone ? "warm" : "ok"}`;
   $("#forecast-caption").textContent = view.horizon === "day" ? "Посадки по часам" : view.horizon === "month" ? "Посадки по дням" : "Посадки по месяцам";
   $("#demand-today").innerHTML = forecastChart(view, board.rows);
   $("#demand-today").querySelectorAll("[data-period]").forEach((button) => {
@@ -1040,6 +1053,16 @@ function renderMockDemand(route) {
   $("#forecast-risk").innerHTML = "";
 }
 
+function isOpenForecastDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value || "") && value >= "2025-01-01";
+}
+
+function statusWithMultiplier(board) {
+  if (!board.scenario.apply || !Number.isFinite(board.scenario.coefficient)) return board.statusLabel;
+  const coeff = board.scenario.coefficient.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return `${board.statusLabel} × ${coeff}`;
+}
+
 function forecastView(route) {
   return {
     route: route.route_short_name,
@@ -1049,7 +1072,7 @@ function forecastView(route) {
     hourTo: state.forecast.hourTo,
     scenario: {
       weather: state.forecast.scenario.weather,
-      eventOn: state.forecast.scenario.eventOn,
+      eventOn: String(state.forecast.scenario.eventCoeff || "").trim() !== "",
       eventCoeff: state.forecast.scenario.eventCoeff,
       seasonMode: state.forecast.scenario.seasonMode,
       seasonCoeff: state.forecast.scenario.seasonCoeff,
@@ -1065,9 +1088,24 @@ function boardingPill(routeName) {
     const demand = TramDemand.demandFor(routeName);
     return `<span class="load-pill missing">${TramDemand.formatLoad(demand.index)}</span>`;
   }
-  const peak = TramForecast.peakHour(routeName, state.forecast.date, state.forecast.hourFrom, state.forecast.hourTo);
-  if (!peak) return '<span class="load-pill missing">нет</span>';
-  return `<span class="load-pill ${peak.tone === "missing" ? "missing" : peak.tone}">${TramForecast.formatCount(peak.value)}</span>`;
+  const board = TramForecast.present({
+    route: routeName,
+    horizon: "day",
+    date: state.forecast.date,
+    hourFrom: state.forecast.selectedHour,
+    hourTo: state.forecast.selectedHour,
+    scenario: {
+      weather: state.forecast.scenario.weather,
+      eventOn: String(state.forecast.scenario.eventCoeff || "").trim() !== "",
+      eventCoeff: state.forecast.scenario.eventCoeff,
+      seasonMode: state.forecast.scenario.seasonMode,
+      seasonCoeff: state.forecast.scenario.seasonCoeff,
+    },
+  });
+  const row = board.rows[0];
+  if (!row || row.scenarioValue == null) return '<span class="load-pill missing">—</span>';
+  const tone = TramForecast.tone(row.scenarioValue, row.usual);
+  return `<span class="load-pill ${tone}">${TramForecast.formatCount(row.scenarioValue)}</span>`;
 }
 
 function syncForecastControls() {
@@ -1077,13 +1115,9 @@ function syncForecastControls() {
   setControlValue("#hour-from", String(state.forecast.hourFrom));
   setControlValue("#hour-to", String(state.forecast.hourTo));
   setControlValue("#scenario-weather", state.forecast.scenario.weather);
-  setControlValue("#scenario-event", state.forecast.scenario.eventOn ? "on" : "off");
   setControlValue("#scenario-season", state.forecast.scenario.seasonMode);
-  setControlValue("#scenario-place", state.forecast.scenario.eventPlace);
-  setControlValue("#scenario-time", state.forecast.scenario.eventTime);
   setControlValue("#scenario-event-coeff", state.forecast.scenario.eventCoeff);
   setControlValue("#scenario-season-coeff", state.forecast.scenario.seasonCoeff);
-  $("#scenario-event-fields").classList.toggle("hidden", !state.forecast.scenario.eventOn);
   $("#scenario-season-field").classList.toggle("hidden", state.forecast.scenario.seasonMode !== "custom");
 }
 
@@ -1153,9 +1187,7 @@ function selectForecastPeriod(period, hour) {
   if (hour !== "" && hour != null) state.forecast.selectedHour = Number(hour);
   else if (/^\d{4}-\d{2}-\d{2}$/.test(period)) state.forecast.date = period;
   else if (/^\d{4}-\d{2}$/.test(period)) state.forecast.date = `${period}-01`;
-  const route = state.routes.find((item) => item.route_id === state.selectedId);
-  if (route) renderDemand(route);
-  else syncHourChip();
+  refreshForecast();
 }
 
 function refreshForecast() {
@@ -1178,7 +1210,12 @@ function bindForecastControls() {
     });
   });
   $("#forecast-date").addEventListener("change", (event) => {
-    state.forecast.date = event.target.value || state.forecast.date;
+    const value = event.target.value;
+    if (!isOpenForecastDate(value)) {
+      event.target.value = state.forecast.date;
+      return;
+    }
+    state.forecast.date = value;
     refreshForecast();
   });
   $("#hour-from").addEventListener("change", (event) => {
@@ -1202,20 +1239,18 @@ function bindForecastControls() {
     state.forecast.scenario.weather = event.target.value;
     refreshForecast();
   });
-  $("#scenario-event").addEventListener("change", (event) => {
-    state.forecast.scenario.eventOn = event.target.value === "on";
-    refreshForecast();
-  });
   $("#scenario-season").addEventListener("change", (event) => {
     state.forecast.scenario.seasonMode = event.target.value;
     refreshForecast();
   });
-  ["#scenario-place", "#scenario-time", "#scenario-event-coeff", "#scenario-season-coeff"].forEach((selector) => {
-    $(selector).addEventListener("input", (event) => {
-      const field = { "#scenario-place": "eventPlace", "#scenario-time": "eventTime", "#scenario-event-coeff": "eventCoeff", "#scenario-season-coeff": "seasonCoeff" }[selector];
-      state.forecast.scenario[field] = event.target.value;
-      refreshForecast();
-    });
+  $("#scenario-event-coeff").addEventListener("input", (event) => {
+    state.forecast.scenario.eventCoeff = event.target.value;
+    state.forecast.scenario.eventOn = event.target.value.trim() !== "";
+    refreshForecast();
+  });
+  $("#scenario-season-coeff").addEventListener("input", (event) => {
+    state.forecast.scenario.seasonCoeff = event.target.value;
+    refreshForecast();
   });
   $("#scenario-reset").addEventListener("click", () => {
     state.forecast.scenario = { weather: "base", eventOn: false, eventPlace: "", eventTime: "", eventCoeff: "", seasonMode: "base", seasonCoeff: "" };
@@ -1362,7 +1397,6 @@ function applySavedLayout(saved) {
     sidebar.style.width = `${sidebarWidth}px`;
     sidebar.style.flexBasis = `${sidebarWidth}px`;
     state.map.invalidateSize({ pan: false });
-    frameMap();
   }
   const cardWidth = parseFloat(saved.routeCardWidth);
   if (cardWidth >= 280) {
@@ -1377,7 +1411,7 @@ function applySavedLayout(saved) {
 function restoreForecast(forecast) {
   if (!forecast || typeof forecast !== "object") return;
   if (forecast.horizon === "day" || forecast.horizon === "month" || forecast.horizon === "year") state.forecast.horizon = forecast.horizon;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(forecast.date || "") && forecast.date >= "2025-01-01" && forecast.date <= "2025-12-31") state.forecast.date = forecast.date;
+  if (isOpenForecastDate(forecast.date)) state.forecast.date = forecast.date;
   if (Number.isInteger(forecast.hourFrom) && forecast.hourFrom >= 0 && forecast.hourFrom <= 23) state.forecast.hourFrom = forecast.hourFrom;
   if (Number.isInteger(forecast.hourTo) && forecast.hourTo >= 0 && forecast.hourTo <= 23) state.forecast.hourTo = forecast.hourTo;
   if (Number.isInteger(forecast.selectedHour) && forecast.selectedHour >= 0 && forecast.selectedHour <= 23) state.forecast.selectedHour = forecast.selectedHour;
@@ -1433,7 +1467,7 @@ function selectFromHash() {
   const params = new URLSearchParams(location.search);
   const date = params.get("date");
   const hour = params.get("hour");
-  if (/^\d{4}-\d{2}-\d{2}$/.test(date || "") && date >= "2025-01-01" && date <= "2025-12-31") {
+  if (isOpenForecastDate(date)) {
     state.forecast.date = date;
     state.forecast.horizon = "day";
   }
@@ -1464,11 +1498,7 @@ function updateStats() {
 
 function fitMap() {
   state.map.invalidateSize({ pan: false });
-  frameMap();
-  setTimeout(() => {
-    state.map.invalidateSize({ pan: false });
-    frameMap();
-  }, 120);
+  setTimeout(() => state.map.invalidateSize({ pan: false }), 120);
 }
 
 async function downloadGtfs() {

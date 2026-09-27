@@ -193,6 +193,9 @@ class AppHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urlparse(self.path)
+        if parsed.path == "/logout":
+            self.handle_logout()
+            return
         if parsed.path != "/login":
             self.send_error(404)
             return
@@ -231,7 +234,11 @@ class AppHandler(BaseHTTPRequestHandler):
         delete_session(self.cookies().get(SESSION_COOKIE))
         self.send_response(303)
         self.send_header("Location", "/login.html")
-        self.send_header("Set-Cookie", f"{SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header(
+            "Set-Cookie",
+            f"{SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+        )
         self.end_headers()
 
     def redirect(self, location):
