@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Загрузка трамвайной сети</title>
-    <link rel="stylesheet" href="./styles.css?v=20260925-routes9" />
+    <link rel="stylesheet" href="./styles.css?v=20260927-equal" />
   </head>
   <body>
     <div class="app-shell dashboard-page">
@@ -19,53 +19,42 @@
         <nav class="page-nav" aria-label="Разделы">
           <a class="nav-link" href="./index.html">Карта</a>
           <a class="nav-link active" href="./dashboard.html">Дашборд</a>
+          <a class="nav-link" href="/logout">Выйти</a>
         </nav>
         <div class="topbar-meta">
           <span class="live-dot"></span>
-          <span>Модельные данные</span>
+            <span>Открытые данные</span>
         </div>
       </header>
       <main class="workspace">
+        <section class="panel-block forecast-panel">
+          <p class="section-label">Прогноз</p>
+          <h2>Ближайшие часы</h2>
+          <div id="forecast-watch" class="rank-list"></div>
+        </section>
         <section class="summary-row" id="summary"></section>
-        <div class="split-row" data-split="overview">
+        <div class="dash-grid">
           <section class="panel-block">
-            <p class="section-label">Рейтинг</p>
-            <h2>Пик ближайших 12 часов</h2>
+            <h2>ДТП на километр</h2>
             <div id="ranking" class="rank-list"></div>
-            <div class="legend">
-              <span><i class="ok"></i>меньше 80%</span>
-              <span><i class="warm"></i>80–100%</span>
-              <span><i class="hot"></i>больше 100%</span>
-            </div>
           </section>
-          <div class="split-gutter" data-index="0" role="separator" aria-orientation="vertical" aria-label="Изменить ширину рейтинга и событий"></div>
           <section class="panel-block events-column">
-            <p class="section-label">Сеть</p>
-            <h2>События и сбои</h2>
+            <h2>Аварии у остановок</h2>
             <div id="events" class="event-list"></div>
           </section>
-          <div class="split-gutter" data-index="1" role="separator" aria-orientation="vertical" aria-label="Изменить ширину событий и погоды"></div>
           <section class="panel-block weather-column">
-            <p class="section-label">Город</p>
-            <h2>Погода по районам</h2>
+            <h2>Погода по маршрутам</h2>
             <div id="weather" class="weather-list"></div>
           </section>
-        </div>
-        <div class="split-row" data-split="operations">
           <section class="panel-block">
-            <p class="section-label">Дороги</p>
-            <h2>Пробки</h2>
+            <h2>Индекс заторов</h2>
             <div id="traffic" class="traffic-list"></div>
           </section>
-          <div class="split-gutter" data-index="0" role="separator" aria-orientation="vertical" aria-label="Изменить ширину пробок и производства"></div>
           <section class="panel-block">
-            <p class="section-label">Депо</p>
-            <h2>Производственные события</h2>
+            <h2>Ремонты у линий</h2>
             <div id="production" class="event-list"></div>
           </section>
-          <div class="split-gutter" data-index="1" role="separator" aria-orientation="vertical" aria-label="Изменить ширину производства и остановок"></div>
           <section class="panel-block">
-            <p class="section-label">Сеть</p>
             <h2>Остановки</h2>
             <div id="stations" class="station-list"></div>
           </section>
@@ -75,18 +64,20 @@
           <h2>Аналитика сети</h2>
           <div class="analytics-grid">
             <div>
-              <p class="demand-caption">Распределение загрузки</p>
+              <p class="demand-caption">Линии по плотности ДТП</p>
               <div id="load-mix" class="mix-list"></div>
             </div>
             <div>
-              <p class="demand-caption">Пассажиры сети, ближайшие 12 часов</p>
+              <p class="demand-caption">ДТП 2024–2026 на маршруте</p>
               <div id="network-hours" class="hour-chart network-chart"></div>
             </div>
           </div>
         </section>
       </main>
     </div>
-    <script src="./demand.js?v=20260925-routes9"></script>
-    <script src="./dashboard.js?v=20260925-routes9"></script>
+    <script src="./demand.js?v=20260927-facts"></script>
+    <script src="./facts.js?v=20260927-fleet"></script>
+    <script src="./forecast.js?v=20260927-equal"></script>
+    <script src="./dashboard.js?v=20260927-equal"></script>
   </body>
 </html>

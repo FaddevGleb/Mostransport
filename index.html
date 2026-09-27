@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#e63946" />
     <title>Трамваи Москвы · GTFS Explorer</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="./styles.css?v=20260925-square" />
+    <link rel="stylesheet" href="./styles.css?v=20260927-equal" />
   </head>
   <body>
     <div class="app-shell">
@@ -21,6 +21,7 @@
         <nav class="page-nav" aria-label="Разделы">
           <a class="nav-link active" href="./index.html">Карта</a>
           <a class="nav-link" href="./dashboard.html">Дашборд</a>
+          <a class="nav-link" href="/logout">Выйти</a>
         </nav>
         <div class="topbar-meta">
           <span class="live-dot"></span>
@@ -50,18 +51,31 @@
             <div class="legend-row"><span class="legend-stop"></span><span>Остановка</span></div>
             <p>Карта © OpenStreetMap contributors</p>
           </div>
+          <button type="button" id="sidebar-resize" class="sidebar-resize" aria-label="Ширина списка маршрутов"></button>
         </aside>
 
         <section class="map-area">
           <div id="map" aria-label="Карта трамвайных маршрутов Москвы"></div>
           <div class="map-overlay top-left">
             <div class="map-chip"><span class="chip-pulse"></span> Москва · внутри МКАД</div>
-          </div>
-          <div class="map-overlay top-right">
-            <button id="toggle-stops" class="map-control active" title="Показать остановки">●</button>
+            <label class="map-chip line-size">
+              <span>Линии</span>
+              <input id="line-size" type="range" min="0.5" max="2.2" step="0.1" value="1" aria-label="Толщина маршрутов">
+            </label>
+            <div class="map-chip hour-chip">
+              <span id="hour-readout">08:00</span>
+              <input id="hour-slider" type="range" min="0" max="23" value="8" aria-label="Выбранный час">
+              <button type="button" id="hour-play" aria-pressed="false" aria-label="Запустить смену часа">▶</button>
+            </div>
           </div>
           <div id="route-details" class="route-details hidden">
+            <button type="button" id="route-card-resize" class="route-card-resize" aria-label="Ширина карточки линии"></button>
             <button id="close-details" class="close-button" aria-label="Закрыть">×</button>
+            <div id="stations-panel" class="stations-panel open">
+              <button type="button" id="stations-toggle" class="stations-toggle" aria-expanded="true" aria-controls="stations-list">Станции</button>
+              <ol id="stations-list" class="stations-list"></ol>
+            </div>
+            <div class="route-details-scroll">
             <div class="detail-route-number" id="detail-number">—</div>
             <div>
               <p class="section-label">Выбранный маршрут</p>
@@ -73,23 +87,93 @@
               <div><strong id="detail-direction">—</strong><span>направление</span></div>
             </div>
             <section class="demand-board" id="demand-board">
+              <div class="horizon-switch" role="tablist" aria-label="Горизонт прогноза">
+                <button type="button" class="horizon-button active" data-horizon="day">День</button>
+                <button type="button" class="horizon-button" data-horizon="month">Месяц</button>
+                <button type="button" class="horizon-button" data-horizon="year">Год</button>
+              </div>
+              <div class="forecast-controls">
+                <label>Дата<input id="forecast-date" class="text-input compact" type="date" min="2025-01-01" max="2025-12-31" value="2025-11-03"></label>
+                <label>С<select id="hour-from" class="text-input compact" aria-label="Час начала"></select></label>
+                <label>по<select id="hour-to" class="text-input compact" aria-label="Час конца"></select></label>
+              </div>
+              <label class="forecast-segment">Участок
+                <select id="forecast-segment" class="text-input compact">
+                  <option value="">весь маршрут</option>
+                </select>
+              </label>
               <div class="demand-head">
-                <div>
-                  <p class="section-label">Сейчас за час</p>
-                  <strong id="demand-now">—</strong>
-                  <span>пассажиров · модельный прогноз</span>
+                <div class="demand-now-row">
+                  <div>
+                    <p class="section-label" id="forecast-total-label">Посадки за период</p>
+                    <strong id="demand-now">—</strong>
+                  </div>
+                  <div class="fleet-stat" id="fleet-stat">
+                    <p class="section-label">Вагоны</p>
+                    <strong id="fleet-count">—</strong>
+                    <span>по реестру</span>
+                  </div>
                 </div>
                 <span id="demand-load" class="load-pill">—</span>
               </div>
-              <p class="demand-caption">Прогноз на следующие 12 часов</p>
+              <p id="forecast-caption" class="demand-caption">Посадки по часам</p>
               <div id="demand-today" class="hour-chart"></div>
-              <p class="demand-caption">Следующий день</p>
-              <div id="demand-tomorrow" class="tomorrow-card"></div>
-              <p class="demand-caption">Пик на неделю вперёд</p>
-              <div id="demand-week" class="hour-chart week-chart"></div>
+              <div class="forecast-table-head">
+                <p class="demand-caption">Текущий срез</p>
+                <button type="button" id="forecast-csv" class="text-button">Скачать CSV</button>
+              </div>
+              <div class="forecast-table-wrap">
+                <table id="forecast-table" class="forecast-table"></table>
+              </div>
+              <section class="forecast-block">
+                <p class="demand-caption">Сценарий</p>
+                <div class="forecast-controls">
+                  <label>Погода
+                    <select id="scenario-weather" class="text-input compact">
+                      <option value="base">как в прогнозе</option>
+                      <option value="rain">дождь</option>
+                      <option value="heavy">сильный дождь</option>
+                    </select>
+                  </label>
+                  <label>Событие
+                    <select id="scenario-event" class="text-input compact">
+                      <option value="off">нет</option>
+                      <option value="on">указать</option>
+                    </select>
+                  </label>
+                  <label>Сезон
+                    <select id="scenario-season" class="text-input compact">
+                      <option value="base">как в прогнозе</option>
+                      <option value="custom">свой коэффициент</option>
+                    </select>
+                  </label>
+                </div>
+                <div id="scenario-event-fields" class="forecast-controls hidden">
+                  <label>Место<input id="scenario-place" class="text-input compact" type="text" placeholder="место"></label>
+                  <label>Время<input id="scenario-time" class="text-input compact" type="text" placeholder="время"></label>
+                  <label>Коэф.<input id="scenario-event-coeff" class="text-input compact" type="text" inputmode="decimal" placeholder="1,10"></label>
+                </div>
+                <label id="scenario-season-field" class="forecast-segment hidden">Свой сезонный коэффициент
+                  <input id="scenario-season-coeff" class="text-input compact" type="text" inputmode="decimal" placeholder="1,00">
+                </label>
+                <button type="button" id="scenario-reset" class="text-button">Сбросить</button>
+              </section>
+              <section class="forecast-block">
+                <p class="demand-caption">Проверить выпуск</p>
+                <div id="forecast-risk" class="risk-list"></div>
+              </section>
+              <section class="forecast-block">
+                <p class="demand-caption">Что если добавить рейс</p>
+                <div class="horizon-switch" role="group" aria-label="Дополнительные рейсы">
+                  <button type="button" class="horizon-button" data-trips="1">+1 рейс</button>
+                  <button type="button" class="horizon-button" data-trips="2">+2 рейса</button>
+                  <button type="button" class="horizon-button active" data-trips="0">Без добавки</button>
+                </div>
+              </section>
             </section>
-            <p class="demand-caption">Рядом с маршрутом</p>
+            <p class="demand-caption">Открытые данные по линии</p>
             <div id="demand-context" class="factor-grid"></div>
+            </div>
           </div>
           <div class="map-footer">
             <div class="stats">
@@ -102,6 +186,32 @@
       </main>
     </div>
 
+    <template id="station-card-template">
+      <aside class="station-card" role="dialog">
+        <header class="station-card-head">
+          <div>
+            <p class="section-label">Станция</p>
+            <strong class="station-card-name">—</strong>
+          </div>
+          <button type="button" class="station-card-close" aria-label="Закрыть">×</button>
+        </header>
+        <div class="station-card-body">
+          <section>
+            <p class="section-label">Погода</p>
+            <strong class="station-weather-value">—</strong>
+          </section>
+          <section>
+            <p class="section-label">Пробки</p>
+            <strong class="station-traffic-value">—</strong>
+          </section>
+          <section>
+            <p class="section-label">Точки интереса</p>
+            <ul class="station-pois"></ul>
+          </section>
+        </div>
+        <button type="button" class="station-card-resize" aria-label="Изменить размер"></button>
+      </aside>
+    </template>
     <div id="toast" class="toast" role="status"></div>
     <script
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -109,7 +219,9 @@
       crossorigin=""
     ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="./demand.js?v=20260925-routes9"></script>
-    <script src="./app.js?v=20260925-routes9"></script>
+    <script src="./demand.js?v=20260927-fleet"></script>
+    <script src="./facts.js?v=20260927-station-card"></script>
+    <script src="./forecast.js?v=20260927-equal"></script>
+    <script src="./app.js?v=20260927-keep"></script>
   </body>
 </html>

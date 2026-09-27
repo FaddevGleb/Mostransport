@@ -1,0 +1,247 @@
+[{"stream_name":"stderr","time":11.291406156,"data":"/usr/local/lib/python3.12/dist-packages/nbformat/__init__.py:96: MissingIDFieldWarning: Cell is missing an id field, this will become a hard error in future nbformat versions. You may want to use `normalize()` on your notebooks before validations (available since nbformat 5.1.4). Previous versions of nbformat are fixing this issue transparently, and will stop doing so in the future.\n"}
+,{"stream_name":"stderr","time":11.291474292,"data":"  validate(nb)\n"}
+,{"stream_name":"stderr","time":12.82930937,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":12.829364281,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":12.829371941,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":12.829376926,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stderr","time":13.671260494,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":13.671311189,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":13.671317501,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":13.671321142,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stdout","time":23.893189238,"data":"GPU 0: Tesla T4 (UUID: GPU-90ba82e8-f23a-7178-d9dc-393a49b87577)\n"}
+,{"stream_name":"stdout","time":23.893264372,"data":"GPU 1: Tesla T4 (UUID: GPU-0e39c1da-4c8e-43f3-1cdf-62248cb11125)\n"}
+,{"stream_name":"stdout","time":23.893269146,"data":"\n"}
+,{"stream_name":"stdout","time":23.8932725,"data":"cuda 2\n"}
+,{"stream_name":"stdout","time":23.896559671,"data":"0 Tesla T4\n"}
+,{"stream_name":"stdout","time":23.896587653,"data":"1 Tesla T4\n"}
+,{"stream_name":"stdout","time":62.263632772,"data":"inputs ['datasets', 'mstrans-enrichment']\n"}
+,{"stream_name":"stdout","time":62.263666352,"data":"DATA /kaggle/input/datasets/kirillvorotnikov2007/mstrans\n"}
+,{"stream_name":"stdout","time":62.263672551,"data":"ENR /kaggle/input/mstrans-enrichment\n"}
+,{"stream_name":"stdout","time":62.739804891,"data":"missing features\n"}
+,{"stream_name":"stdout","time":62.739843505,"data":" temp       0\n"}
+,{"stream_name":"stdout","time":62.739849029,"data":"holiday    0\n"}
+,{"stream_name":"stdout","time":62.739853699,"data":"offices    0\n"}
+,{"stream_name":"stderr","time":62.898398041,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stderr","time":62.898432356,"data":"\n"}
+,{"stream_name":"stderr","time":62.89843684,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stdout","time":64.308048393,"data":"rows train 58320 test 14640 mean 804.4\n"}
+,{"stream_name":"stdout","time":64.308089549,"data":"route 1 month 1 day 1 dow 2 hour 0 weekend 0 dayoff 1 holiday newyear preholiday 1 short 0 temp -1.9 precip 0.1 wind 12.7 code 71 snow 1 rain 0 fog 0 offices 21 offices_hit 17 acc7 1 acc30 3 tram7 1 lag24 0 lag168 0\n"}
+,{"stream_name":"stdout","time":93.76025168,"data":"packed 58320 tokens 78 width 96\n"}
+,{"stream_name":"stdout","time":100.903803032,"data":"packed 14640 tokens 77 width 96\n"}
+,{"stream_name":"stdout","time":137.445885906,"data":"packed 72960 tokens 78 width 96\n"}
+,{"stream_name":"stdout","time":137.504554445,"data":"mean boardings 804.4\n"}
+,{"stream_name":"stdout","time":137.837942769,"data":"launch /usr/bin/python3 -m torch.distributed.run --nproc_per_node=2 --standalone --master_port 29531 /kaggle/working/train_ddp.py\n"}
+,{"stream_name":"stderr","time":139.907106467,"data":"\n"}
+,{"stream_name":"stderr","time":139.907138841,"data":"*****************************************\n"}
+,{"stream_name":"stderr","time":139.907144145,"data":"Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. \n"}
+,{"stream_name":"stderr","time":139.907149141,"data":"*****************************************\n"}
+,{"stream_name":"stderr","time":140.109926855,"data":"\n"}
+,{"stream_name":"stderr","time":140.109968744,"data":"*****************************************\n"}
+,{"stream_name":"stderr","time":140.109972582,"data":"Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. \n"}
+,{"stream_name":"stderr","time":140.109977614,"data":"*****************************************\n"}
+,{"stream_name":"stderr","time":140.10998023,"data":"\n"}
+,{"stream_name":"stderr","time":140.109982544,"data":"\n"}
+,{"stream_name":"stderr","time":140.109984849,"data":"*****************************************\n"}
+,{"stream_name":"stderr","time":140.109987584,"data":"Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. \n"}
+,{"stream_name":"stderr","time":140.109990496,"data":"*****************************************\n"}
+,{"stream_name":"stderr","time":140.35835369,"data":"[W926 21:27:18.903273161 socket.cpp:207] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n"}
+,{"stream_name":"stderr","time":140.561525519,"data":"[W926 21:27:18.903273161 socket.cpp:207] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n"}
+,{"stream_name":"stderr","time":140.561592079,"data":"\n"}
+,{"stream_name":"stderr","time":140.561599041,"data":"[W926 21:27:18.903273161 socket.cpp:207] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n"}
+,{"stream_name":"stderr","time":149.382161724,"data":"[W926 21:27:27.927041430 socket.cpp:207] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n"}
+,{"stream_name":"stderr","time":149.385121555,"data":"[W926 21:27:27.930166058 socket.cpp:207] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n"}
+,{"stream_name":"stdout","time":149.38902617,"data":"ddp world 2 device Tesla T4\n"}
+,{"stream_name":"stderr","time":149.585179661,"data":"[W926 21:27:27.927041430 socket.cpp:207] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n"}
+,{"stream_name":"stderr","time":149.585214581,"data":"[W926 21:27:27.930166058 socket.cpp:207] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n"}
+,{"stream_name":"stderr","time":149.585220843,"data":"\n"}
+,{"stream_name":"stderr","time":149.585225836,"data":"[W926 21:27:27.927041430 socket.cpp:207] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n"}
+,{"stream_name":"stderr","time":149.585230884,"data":"[W926 21:27:27.930166058 socket.cpp:207] [c10d] The hostname of the client socket cannot be retrieved. err=-3\n"}
+,{"stream_name":"stdout","time":149.592176343,"data":"ddp world 2 device Tesla T4\n"}
+,{"stream_name":"stderr","time":149.701603018,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stderr","time":149.717105808,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stderr","time":149.903885582,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stderr","time":149.903929919,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stderr","time":149.903936032,"data":"\n"}
+,{"stream_name":"stderr","time":149.903940102,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stderr","time":149.903944618,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stderr","time":150.229032893,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":150.229066508,"data":"- configuration_bert.py\n"}
+,{"stream_name":"stderr","time":150.229072779,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":150.233613928,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":150.233646316,"data":"- configuration_bert.py\n"}
+,{"stream_name":"stderr","time":150.233651273,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":150.432017192,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":150.432073316,"data":"- configuration_bert.py\n"}
+,{"stream_name":"stderr","time":150.432079908,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":150.432084899,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":150.432089171,"data":"- configuration_bert.py\n"}
+,{"stream_name":"stderr","time":150.432093116,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":150.432097518,"data":"\n"}
+,{"stream_name":"stderr","time":150.432101274,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":150.432107328,"data":"- configuration_bert.py\n"}
+,{"stream_name":"stderr","time":150.432114264,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":150.432117123,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":150.432119938,"data":"- configuration_bert.py\n"}
+,{"stream_name":"stderr","time":150.432139647,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":150.896920595,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":150.896948925,"data":"- flash_attn_triton.py\n"}
+,{"stream_name":"stderr","time":150.89695417,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":150.96749617,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":150.967523947,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":150.967530192,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":150.967534859,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":150.967539329,"data":"- bert_layers.py\n"}
+,{"stream_name":"stderr","time":150.967542566,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":150.967546237,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":150.986844772,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":150.986871875,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":150.986881774,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":150.986885345,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":150.986888101,"data":"- bert_layers.py\n"}
+,{"stream_name":"stderr","time":150.986890509,"data":"- flash_attn_triton.py\n"}
+,{"stream_name":"stderr","time":150.986892969,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":150.986895389,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":151.099497701,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":151.099519058,"data":"- flash_attn_triton.py\n"}
+,{"stream_name":"stderr","time":151.099522306,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":151.09952529,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":151.099528008,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":151.0995304,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":151.099533098,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":151.099543717,"data":"- bert_layers.py\n"}
+,{"stream_name":"stderr","time":151.099546404,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":151.099548798,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":151.099551462,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":151.099553948,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":151.099556304,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":151.099558967,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":151.099561543,"data":"- bert_layers.py\n"}
+,{"stream_name":"stderr","time":151.099563947,"data":"- flash_attn_triton.py\n"}
+,{"stream_name":"stderr","time":151.09956635,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":151.099568696,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":151.099571571,"data":"\n"}
+,{"stream_name":"stderr","time":151.099573868,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":151.099576391,"data":"- flash_attn_triton.py\n"}
+,{"stream_name":"stderr","time":151.099578714,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":151.099581378,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":151.099583874,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":151.09958624,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":151.099589627,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":151.099592241,"data":"- bert_layers.py\n"}
+,{"stream_name":"stderr","time":151.09959459,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":151.099596951,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":151.09959951,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":151.099601978,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":151.09960431,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":151.099606924,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":151.099609438,"data":"- bert_layers.py\n"}
+,{"stream_name":"stderr","time":151.099611757,"data":"- flash_attn_triton.py\n"}
+,{"stream_name":"stderr","time":151.099614062,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":151.099616443,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stdout","time":155.1546274,"data":"phase 1: train Jan-Aug\n"}
+,{"stream_name":"stdout","time":155.357740129,"data":"phase 1: train Jan-Aug\n"}
+,{"stream_name":"stdout","time":157.292730749,"data":"step 1 epoch 0 lr 0.000001 loss 611.25 gpu_mb 2647\n"}
+,{"stream_name":"stdout","time":157.49539367,"data":"step 1 epoch 0 lr 0.000001 loss 611.25 gpu_mb 2647\n"}
+,{"stream_name":"stdout","time":204.746143521,"data":"step 200 epoch 0 lr 0.000100 loss 693.25 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":204.95327609,"data":"step 200 epoch 0 lr 0.000100 loss 693.25 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":252.527329626,"data":"step 400 epoch 0 lr 0.000100 loss 639.50 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":252.734594815,"data":"step 400 epoch 0 lr 0.000100 loss 639.50 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":300.428339737,"data":"step 600 epoch 0 lr 0.000100 loss 647.75 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":300.636022888,"data":"step 600 epoch 0 lr 0.000100 loss 647.75 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":348.336875542,"data":"step 800 epoch 0 lr 0.000100 loss 741.44 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":348.5457431,"data":"step 800 epoch 0 lr 0.000100 loss 741.44 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":396.236711102,"data":"step 1000 epoch 0 lr 0.000100 loss 543.19 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":396.443810181,"data":"step 1000 epoch 0 lr 0.000100 loss 543.19 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":444.105634563,"data":"step 1200 epoch 0 lr 0.000100 loss 459.25 gpu_mb 2648\n"}
+,{"stream_name":"stdout","time":444.313076533,"data":"step 1200 epoch 0 lr 0.000100 loss 459.25 gpu_mb 2648\n"}
+,{"stream_name":"stdout","time":492.036083502,"data":"step 1400 epoch 0 lr 0.000100 loss 887.62 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":492.244150592,"data":"step 1400 epoch 0 lr 0.000100 loss 887.62 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":539.933983856,"data":"step 1600 epoch 0 lr 0.000100 loss 711.88 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":540.141659804,"data":"step 1600 epoch 0 lr 0.000100 loss 711.88 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":587.88323489,"data":"step 1800 epoch 0 lr 0.000100 loss 754.06 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":588.090358321,"data":"step 1800 epoch 0 lr 0.000100 loss 754.06 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":593.394704437,"data":"epoch 0 train L1 726.20 batch-wape 0.9013\n"}
+,{"stream_name":"stdout","time":593.597513349,"data":"epoch 0 train L1 726.20 batch-wape 0.9013\n"}
+,{"stream_name":"stdout","time":635.800657008,"data":"step 2000 epoch 1 lr 0.000100 loss 736.00 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":636.007826324,"data":"step 2000 epoch 1 lr 0.000100 loss 736.00 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":683.660886306,"data":"step 2200 epoch 1 lr 0.000100 loss 688.00 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":683.869249911,"data":"step 2200 epoch 1 lr 0.000100 loss 688.00 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":731.578887976,"data":"step 2400 epoch 1 lr 0.000100 loss 453.12 gpu_mb 2648\n"}
+,{"stream_name":"stdout","time":731.78701523,"data":"step 2400 epoch 1 lr 0.000100 loss 453.12 gpu_mb 2648\n"}
+,{"stream_name":"stdout","time":779.451923435,"data":"step 2600 epoch 1 lr 0.000100 loss 890.69 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":779.660275356,"data":"step 2600 epoch 1 lr 0.000100 loss 890.69 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":827.394609968,"data":"step 2800 epoch 1 lr 0.000100 loss 437.25 gpu_mb 2648\n"}
+,{"stream_name":"stdout","time":827.603219293,"data":"step 2800 epoch 1 lr 0.000100 loss 437.25 gpu_mb 2648\n"}
+,{"stream_name":"stdout","time":875.370159163,"data":"step 3000 epoch 1 lr 0.000100 loss 574.53 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":875.577890264,"data":"step 3000 epoch 1 lr 0.000100 loss 574.53 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":923.278591882,"data":"step 3200 epoch 1 lr 0.000100 loss 571.97 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":923.486255403,"data":"step 3200 epoch 1 lr 0.000100 loss 571.97 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":971.203780391,"data":"step 3400 epoch 1 lr 0.000100 loss 493.56 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":971.415414993,"data":"step 3400 epoch 1 lr 0.000100 loss 493.56 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1019.14261278,"data":"step 3600 epoch 1 lr 0.000100 loss 479.31 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1019.351271784,"data":"step 3600 epoch 1 lr 0.000100 loss 479.31 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1030.156884556,"data":"epoch 1 train L1 698.94 batch-wape 0.8721\n"}
+,{"stream_name":"stderr","time":1030.163434816,"data":"/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n"}
+,{"stream_name":"stderr","time":1030.163465647,"data":"  return func(*args, **kwargs)\n"}
+,{"stream_name":"stdout","time":1030.359950913,"data":"epoch 1 train L1 698.94 batch-wape 0.8721\n"}
+,{"stream_name":"stderr","time":1030.366230303,"data":"/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n"}
+,{"stream_name":"stderr","time":1030.366316553,"data":"  return func(*args, **kwargs)\n"}
+,{"stream_name":"stderr","time":1030.366323202,"data":"\n"}
+,{"stream_name":"stderr","time":1030.36632803,"data":"/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n"}
+,{"stream_name":"stderr","time":1030.366333452,"data":"  return func(*args, **kwargs)\n"}
+,{"stream_name":"stdout","time":1054.307056893,"data":"test Sep-Oct WAPE 0.8841 score 0.1159\n"}
+,{"stream_name":"stdout","time":1054.307691658,"data":"phase 2: continue on train+test\n"}
+,{"stream_name":"stdout","time":1054.516419161,"data":"test Sep-Oct WAPE 0.8841 score 0.1159\n"}
+,{"stream_name":"stdout","time":1054.516480877,"data":"phase 2: continue on train+test\n"}
+,{"stream_name":"stdout","time":1054.555097792,"data":"step 1 epoch 0 lr 0.000001 loss 968.00 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1054.757988247,"data":"step 1 epoch 0 lr 0.000001 loss 968.00 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1102.25566785,"data":"step 200 epoch 0 lr 0.000100 loss 542.44 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1102.463927773,"data":"step 200 epoch 0 lr 0.000100 loss 542.44 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1150.068278946,"data":"step 400 epoch 0 lr 0.000100 loss 691.75 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1150.276421508,"data":"step 400 epoch 0 lr 0.000100 loss 691.75 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1198.01931632,"data":"step 600 epoch 0 lr 0.000100 loss 691.00 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1198.22789814,"data":"step 600 epoch 0 lr 0.000100 loss 691.00 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1245.503787304,"data":"step 800 epoch 0 lr 0.000100 loss 525.72 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1245.713896662,"data":"step 800 epoch 0 lr 0.000100 loss 525.72 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1293.414338734,"data":"step 1000 epoch 0 lr 0.000100 loss 664.48 gpu_mb 2648\n"}
+,{"stream_name":"stdout","time":1293.623143996,"data":"step 1000 epoch 0 lr 0.000100 loss 664.48 gpu_mb 2648\n"}
+,{"stream_name":"stdout","time":1341.357619231,"data":"step 1200 epoch 0 lr 0.000100 loss 460.70 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1341.566947804,"data":"step 1200 epoch 0 lr 0.000100 loss 460.70 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1389.341178623,"data":"step 1400 epoch 0 lr 0.000100 loss 559.69 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1389.549727132,"data":"step 1400 epoch 0 lr 0.000100 loss 559.69 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1437.268767532,"data":"step 1600 epoch 0 lr 0.000100 loss 526.31 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1437.477578414,"data":"step 1600 epoch 0 lr 0.000100 loss 526.31 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1485.263447642,"data":"step 1800 epoch 0 lr 0.000100 loss 485.36 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1485.473509122,"data":"step 1800 epoch 0 lr 0.000100 loss 485.36 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1533.239646741,"data":"step 2000 epoch 0 lr 0.000100 loss 617.61 gpu_mb 2648\n"}
+,{"stream_name":"stdout","time":1533.449077506,"data":"step 2000 epoch 0 lr 0.000100 loss 617.61 gpu_mb 2648\n"}
+,{"stream_name":"stdout","time":1581.203553474,"data":"step 2200 epoch 0 lr 0.000100 loss 742.64 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1581.415843202,"data":"step 2200 epoch 0 lr 0.000100 loss 742.64 gpu_mb 2649\n"}
+,{"stream_name":"stdout","time":1600.394775639,"data":"epoch 0 train L1 710.56 batch-wape 0.8691\n"}
+,{"stream_name":"stdout","time":1600.597437472,"data":"epoch 0 train L1 710.56 batch-wape 0.8691\n"}
+,{"stream_name":"stdout","time":1602.110825579,"data":"forecast 2025-11-01\n"}
+,{"stream_name":"stdout","time":1602.313664252,"data":"forecast 2025-11-01\n"}
+,{"stream_name":"stdout","time":1614.138419467,"data":"forecast 2025-12-01\n"}
+,{"stream_name":"stdout","time":1614.347672379,"data":"forecast 2025-12-01\n"}
+,{"stream_name":"stdout","time":1626.351850256,"data":"submission 14640 missing 0 mean 479.0\n"}
+,{"stream_name":"stderr","time":1626.357412308,"data":"/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n"}
+,{"stream_name":"stderr","time":1626.357433696,"data":"  return func(*args, **kwargs)\n"}
+,{"stream_name":"stdout","time":1626.55472517,"data":"submission 14640 missing 0 mean 479.0\n"}
+,{"stream_name":"stderr","time":1626.56006622,"data":"/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n"}
+,{"stream_name":"stderr","time":1626.560088831,"data":"  return func(*args, **kwargs)\n"}
+,{"stream_name":"stderr","time":1626.56009545,"data":"\n"}
+,{"stream_name":"stderr","time":1626.560100151,"data":"/usr/local/lib/python3.12/dist-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.\n"}
+,{"stream_name":"stderr","time":1626.560106368,"data":"  return func(*args, **kwargs)\n"}
+,{"stream_name":"stdout","time":1631.800249254,"data":"torchrun exit 0\n"}
+,{"stream_name":"stdout","time":1631.801281216,"data":"sep_oct_wape=0.884066\n"}
+,{"stream_name":"stdout","time":1631.801320183,"data":"sep_oct_score=0.115934\n"}
+,{"stream_name":"stdout","time":1631.801325877,"data":"\n"}
+,{"stream_name":"stderr","time":1636.164252014,"data":"/usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":1636.164327723,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":1636.391329634,"data":"/usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":1636.391358176,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":1638.718687101,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to notebook\n"}
+,{"stream_name":"stderr","time":1639.079068778,"data":"[NbConvertApp] Writing 79805 bytes to __notebook__.ipynb\n"}
+,{"stream_name":"stderr","time":1641.801687699,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to html\n"}
+,{"stream_name":"stderr","time":1642.734935606,"data":"[NbConvertApp] Writing 399701 bytes to __results__.html\n"}
+]

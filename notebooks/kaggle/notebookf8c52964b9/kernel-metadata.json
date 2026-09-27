@@ -1,0 +1,21 @@
+{
+  "id": "gvfadeev/notebookf8c52964b9",
+  "id_no": 135874280,
+  "title": "notebookf8c52964b9",
+  "code_file": "notebookf8c52964b9.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "keywords": [],
+  "dataset_sources": [
+    "kirillvorotnikov2007/mstrans",
+    "gvfadeev/mstrans-enrichment"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": []
+}

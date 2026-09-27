@@ -1,13 +1,18 @@
 /* global L, JSZip */
 
-const MOSCOW = [55.7558, 37.6173];
+const MOSCOW = [55.7558, 37.62];
+const KRASNOGORSK = [55.8204707, 37.3196942];
+const KRASNOGORSK_INSET_PX = 30;
 const MOSCOW_MKAD_BOUNDS = [
-  [55.55, 37.30],
-  [55.93, 37.99],
+  [55.40, 36.90],
+  [56.10, 39.40],
 ];
-const MOSCOW_MAP_ZOOM = 11;
+const MOSCOW_MAP_ZOOM = 10.5;
+const LINE_HIT_WEIGHT = 18;
+const LINE_HOVER_LINGER_MS = 240;
 const DEFAULT_ENDPOINT = "https://apidata.mos.ru/v1/datasets/3221/features";
 const PAGE_SIZE = 1000;
+const MAP_STATE_KEY = "tram-map-state";
 
 const state = {
   map: null,
@@ -16,8 +21,34 @@ const state = {
   feed: null,
   routes: [],
   selectedId: null,
+  hoveredId: null,
+  hoverTimer: 0,
+  stationStopId: null,
+  stationCards: new Map(),
+  stationCardZ: 1200,
+  lineScale: 1,
   showStops: true,
   usingDemo: false,
+  forecast: {
+    horizon: "day",
+    date: "2025-11-03",
+    hourFrom: 0,
+    hourTo: 23,
+    selectedHour: 8,
+    playing: false,
+    playTimer: 0,
+    segment: "",
+    trips: 0,
+    scenario: {
+      weather: "base",
+      eventOn: false,
+      eventPlace: "",
+      eventTime: "",
+      eventCoeff: "",
+      seasonMode: "base",
+      seasonCoeff: "",
+    },
+  },
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -28,6 +59,24 @@ document.addEventListener("DOMContentLoaded", () => {
   renderFeed(makeDemoFeed(), true);
   setStatus("Готово · набор 3221 GeoJSON");
   loadLocalGeoJson({ silent: true }).catch(() => {});
+  if (window.TramFacts) {
+    TramFacts.load().then(() => {
+      if (!state.selectedId) return;
+      const route = state.routes.find((item) => item.route_id === state.selectedId);
+      if (route) renderDemand(route);
+    }).catch(() => {});
+  }
+  if (window.TramForecast) {
+    TramForecast.load().then(() => {
+      renderRouteList($("#route-search").value);
+      const route = state.routes.find((item) => item.route_id === state.selectedId);
+      if (route) renderDemand(route);
+    }).catch(() => {
+      renderRouteList($("#route-search").value);
+      const route = state.routes.find((item) => item.route_id === state.selectedId);
+      if (route) renderDemand(route);
+    });
+  }
 });
 
 function setupMap() {
@@ -35,6 +84,7 @@ function setupMap() {
   state.map = L.map("map", {
     zoomControl: false,
     preferCanvas: true,
+    zoomSnap: 0.5,
     minZoom: MOSCOW_MAP_ZOOM,
     maxZoom: MOSCOW_MAP_ZOOM,
     maxBounds: cityBounds,
@@ -56,8 +106,24 @@ function setupMap() {
     keepBuffer: 3,
   }).addTo(state.map);
   state.stopsLayer = L.layerGroup().addTo(state.map);
-  window.addEventListener("resize", () => state.map.invalidateSize({ pan: false }));
-  setTimeout(() => state.map.invalidateSize({ pan: false }), 250);
+  window.addEventListener("resize", () => {
+    state.map.invalidateSize({ pan: false });
+    frameMap();
+  });
+  setTimeout(() => {
+    state.map.invalidateSize({ pan: false });
+    frameMap();
+  }, 250);
+}
+
+function frameMap() {
+  const zoom = MOSCOW_MAP_ZOOM;
+  const size = state.map.getSize();
+  if (!size.x || !size.y) return;
+  const anchor = state.map.project(KRASNOGORSK, zoom);
+  const latitude = state.map.project(MOSCOW, zoom);
+  const center = state.map.unproject(L.point(anchor.x - KRASNOGORSK_INSET_PX + size.x / 2, latitude.y), zoom);
+  state.map.setView(center, zoom, { animate: false });
 }
 
 function bindEvents() {
@@ -68,16 +134,45 @@ function bindEvents() {
     renderMap();
     renderRouteList($("#route-search").value);
   });
-  $("#toggle-stops").addEventListener("click", () => {
-    state.showStops = !state.showStops;
-    $("#toggle-stops").classList.toggle("active", state.showStops);
-    renderStops();
+  $("#stations-toggle").addEventListener("click", () => {
+    setStationsOpen(!$("#stations-panel").classList.contains("open"));
+  });
+  $("#line-size").addEventListener("input", (event) => {
+    state.lineScale = Number(event.target.value) || 1;
+    applyLineScale();
+  });
+  bindEdgeResize($("#sidebar-resize"), {
+    target: $(".sidebar"),
+    read: () => $(".sidebar").getBoundingClientRect().width,
+    write: (width) => {
+      const sidebar = $(".sidebar");
+      sidebar.style.width = `${width}px`;
+      sidebar.style.flexBasis = `${width}px`;
+      state.map.invalidateSize({ pan: false });
+      frameMap();
+    },
+    next: (start, dx) => clamp(start + dx, 220, 560),
+  });
+  bindEdgeResize($("#route-card-resize"), {
+    target: $("#route-details"),
+    read: () => $("#route-details").getBoundingClientRect().width,
+    write: (width) => {
+      const card = $("#route-details");
+      card.classList.add("is-sized");
+      card.style.setProperty("--route-card-width", `${width}px`);
+      $(".map-area").style.setProperty("--route-card-width", `${width}px`);
+    },
+    next: (start, dx) => clamp(start - dx, 280, Math.max(320, $(".map-area").getBoundingClientRect().width - 48)),
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "/" && document.activeElement.tagName !== "INPUT") {
       event.preventDefault();
       $("#route-search").focus();
     }
+  });
+  bindForecastControls();
+  window.addEventListener("pagehide", () => {
+    if (!state.usingDemo) saveMapState();
   });
 }
 
@@ -507,6 +602,7 @@ function makeFeed(data) {
 }
 
 function renderFeed(feed, usingDemo) {
+  clearStationCards();
   state.feed = feed;
   state.routes = feed.routes;
   state.usingDemo = usingDemo;
@@ -517,9 +613,12 @@ function renderFeed(feed, usingDemo) {
   updateStats();
   fitMap();
   selectFromHash();
+  applySavedMapState();
 }
 
 function renderMap() {
+  window.clearTimeout(state.hoverTimer);
+  state.hoveredId = null;
   state.layers.forEach((layer) => layer.remove());
   state.layers.clear();
   const shapeGroups = groupBy(state.feed.shapes, "shape_id");
@@ -531,36 +630,157 @@ function renderMap() {
     const selected = route.route_id === state.selectedId;
     const dimmed = state.selectedId && !selected;
     const color = `#${route.route_color || "e33d4d"}`;
-    const casing = L.polyline(points, { color: "#ffffff", weight: selected ? 14 : 11, opacity: dimmed ? .1 : .9, lineCap: "round", lineJoin: "round" });
-    const line = L.polyline(points, { color, weight: selected ? 8 : 6, opacity: dimmed ? .1 : 1, lineCap: "round", lineJoin: "round" })
+    const weights = routeWeights(selected, false);
+    const casing = L.polyline(points, { color: "#ffffff", weight: weights.casing, opacity: dimmed ? .1 : .9, lineCap: "round", lineJoin: "round", interactive: false });
+    const line = L.polyline(points, { color, weight: weights.line, opacity: dimmed ? .1 : 1, lineCap: "round", lineJoin: "round", interactive: false });
+    const hit = L.polyline(points, { color, weight: weights.hit, opacity: 0, lineCap: "round", lineJoin: "round", interactive: true })
       .bindTooltip(`${route.route_short_name} · ${route.route_long_name}`, { className: "tram-tooltip", sticky: true })
+      .on("mouseover", () => holdRoute(route.route_id))
+      .on("mouseout", () => releaseRoute(route.route_id))
       .on("click", () => selectRoute(route.route_id));
-    state.layers.set(route.route_id, L.layerGroup([casing, line]).addTo(state.map));
+    const group = L.layerGroup([casing, line, hit]).addTo(state.map);
+    group._casing = casing;
+    group._line = line;
+    group._hit = hit;
+    state.layers.set(route.route_id, group);
   });
   renderStops();
+  state.layers.forEach((group) => group._hit.bringToFront());
+  raiseStops();
+}
+
+function holdRoute(routeId) {
+  window.clearTimeout(state.hoverTimer);
+  if (state.hoveredId && state.hoveredId !== routeId) paintRouteHover(state.hoveredId, false);
+  state.hoveredId = routeId;
+  paintRouteHover(routeId, true);
+  state.layers.get(routeId)?._hit.openTooltip();
+}
+
+function releaseRoute(routeId) {
+  window.clearTimeout(state.hoverTimer);
+  state.hoverTimer = window.setTimeout(() => {
+    if (state.hoveredId !== routeId) return;
+    paintRouteHover(routeId, false);
+    state.layers.get(routeId)?._hit.closeTooltip();
+    state.hoveredId = null;
+  }, LINE_HOVER_LINGER_MS);
+}
+
+function paintRouteHover(routeId, active) {
+  const group = state.layers.get(routeId);
+  if (!group) return;
+  const selected = routeId === state.selectedId;
+  const dimmed = Boolean(state.selectedId) && !selected;
+  group._line.setStyle({
+    weight: routeWeights(selected, active).line,
+    opacity: active || !dimmed ? 1 : .1,
+  });
+  group._casing.setStyle({
+    weight: routeWeights(selected, active).casing,
+    opacity: active ? 1 : (dimmed ? .1 : .9),
+  });
+  if (active) {
+    group._casing.bringToFront();
+    group._line.bringToFront();
+    group._hit.bringToFront();
+  }
+  raiseStops();
+}
+
+function raiseStops() {
+  state.stopsLayer?.eachLayer((layer) => layer.bringToFront());
+}
+
+function routeWeights(selected, hovered) {
+  const scale = state.lineScale;
+  return {
+    line: ((selected ? 8 : 6) + (hovered ? 3 : 0)) * scale,
+    casing: ((selected ? 14 : 11) + (hovered ? 4 : 0)) * scale,
+    hit: Math.max(16, LINE_HIT_WEIGHT * scale),
+  };
+}
+
+function applyLineScale() {
+  state.layers.forEach((group, routeId) => {
+    const selected = routeId === state.selectedId;
+    const hovered = routeId === state.hoveredId;
+    const weights = routeWeights(selected, hovered);
+    group._line.setStyle({ weight: weights.line });
+    group._casing.setStyle({ weight: weights.casing });
+    group._hit.setStyle({ weight: weights.hit });
+  });
+  raiseStops();
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function bindEdgeResize(handle, options) {
+  let drag = null;
+  handle.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    drag = { x: event.clientX, width: options.read() };
+    options.target.classList.add("is-resizing");
+    document.body.classList.add("is-resizing");
+    handle.setPointerCapture(event.pointerId);
+  });
+  handle.addEventListener("pointermove", (event) => {
+    if (!drag) return;
+    options.write(Math.round(options.next(drag.width, event.clientX - drag.x)));
+  });
+  const end = () => {
+    if (!drag) return;
+    drag = null;
+    options.target.classList.remove("is-resizing");
+    document.body.classList.remove("is-resizing");
+  };
+  handle.addEventListener("pointerup", end);
+  handle.addEventListener("pointercancel", end);
+}
+
+const LOAD_FILL = { ok: "#2faf67", warm: "#e2a322", hot: "#e23b4b" };
+
+function stationLoad(route, index, total) {
+  const base = TramDemand.demandFor(route.route_short_name).index;
+  const position = total <= 1 ? 0.5 : index / (total - 1);
+  const wave = Math.sin(position * Math.PI);
+  return base * (0.62 + 0.72 * wave);
 }
 
 function renderStops() {
   state.stopsLayer.clearLayers();
   if (!state.showStops || !state.feed) return;
-  const selectedStopIds = new Set((state.selectedId ? stopsForRoute(state.selectedId) : []).map((stop) => stop.stop_id));
+  const selectedStops = state.selectedId ? stopsForRoute(state.selectedId) : [];
+  const selectedIndex = new Map(selectedStops.map((stop, index) => [stop.stop_id, index]));
   const stopColors = buildStopColorIndex();
   const selectedRoute = state.routes.find((route) => route.route_id === state.selectedId);
-  const stops = [...state.feed.stops].sort((left, right) => Number(selectedStopIds.has(left.stop_id)) - Number(selectedStopIds.has(right.stop_id)));
+  const stops = [...state.feed.stops].sort((left, right) => {
+    const rank = (stop) => (stop.stop_id === state.stationStopId ? 3 : 0) + (state.stationCards.has(stop.stop_id) ? 2 : 0) + (selectedIndex.has(stop.stop_id) ? 1 : 0);
+    return rank(left) - rank(right);
+  });
   stops.forEach((stop) => {
-    const belongsToSelection = !state.selectedId || selectedStopIds.has(stop.stop_id);
+    const onSelectedLine = selectedIndex.has(stop.stop_id);
     const colors = stopColors.get(stop.stop_id) || [];
-    const color = belongsToSelection && selectedRoute ? selectedRoute.route_color : (colors[0] || "e33d4d");
-    const tooltip = colors.length > 1
-      ? `${stop.stop_name} · ${colors.length} линии`
-      : stop.stop_name;
+    let fill = `#${onSelectedLine && selectedRoute ? selectedRoute.route_color : (colors[0] || "e33d4d")}`;
+    let tooltip = colors.length > 1 ? `${stop.stop_name} · ${colors.length} линии` : stop.stop_name;
+    if (onSelectedLine && selectedRoute) {
+      const load = stationLoad(selectedRoute, selectedIndex.get(stop.stop_id), selectedStops.length);
+      const tone = TramDemand.loadTone(load);
+      fill = LOAD_FILL[tone];
+    }
+    const open = state.stationCards.has(stop.stop_id);
+    const focused = stop.stop_id === state.stationStopId;
+    const visible = !state.selectedId || onSelectedLine || open;
     L.circleMarker([stop.stop_lat, stop.stop_lon], {
-      radius: belongsToSelection && state.selectedId ? 4.5 : 3.5,
-      weight: 1.5,
+      radius: focused ? 10 : (open ? 8 : (onSelectedLine ? 5.5 : 3.5)),
+      weight: focused ? 2.5 : (open ? 2 : 1.5),
       color: "#fff",
-      opacity: belongsToSelection ? 1 : .1,
-      fillColor: `#${color}`,
-      fillOpacity: belongsToSelection ? 1 : .1,
+      opacity: visible ? 1 : .1,
+      fillColor: fill,
+      fillOpacity: visible ? 1 : .1,
     }).bindTooltip(tooltip, { direction: "top", offset: [0, -4], className: "tram-tooltip" }).addTo(state.stopsLayer);
   });
 }
@@ -589,11 +809,10 @@ function renderRouteList(query = "") {
   $("#route-count").textContent = state.routes.length;
   list.innerHTML = routes.length ? routes.map((route) => {
     const stops = stopsForRoute(route.route_id);
-    const demand = TramDemand.demandFor(route.route_short_name);
     return `<button class="route-item ${route.route_id === state.selectedId ? "selected" : ""}" data-route-id="${route.route_id}">
       <span class="route-badge" style="background:#${route.route_color}">${escapeHtml(route.route_short_name)}</span>
       <span class="route-item-text"><span class="route-item-name">${escapeHtml(route.route_long_name)}</span><span class="route-item-meta">${stops.length} остановок · ${route.direction === "1" ? "обратное" : "прямое"}</span></span>
-      <span class="load-pill ${TramDemand.loadTone(demand.index)}" title="Пиковая загрузка ближайших 12 часов">${TramDemand.formatLoad(demand.index)}</span>
+      ${boardingPill(route.route_short_name)}
     </button>`;
   }).join("") : '<div class="empty-state">Ничего не найдено.<br />Попробуйте номер маршрута или название остановки.</div>';
   list.querySelectorAll("[data-route-id]").forEach((item) => item.addEventListener("click", () => selectRoute(item.dataset.routeId)));
@@ -612,23 +831,460 @@ function selectRoute(routeId) {
   $("#detail-stops").textContent = stops.length;
   $("#detail-length").textContent = `${routeDistance(stops).toFixed(1)} км`;
   $("#detail-direction").textContent = route.direction === "1" ? "обратное" : "прямое";
+  state.forecast.segment = "";
+  syncSegmentOptions(stops);
   renderDemand(route);
+  renderStations(stops);
   $("#route-details").classList.remove("hidden");
 }
 
+function renderStations(stops) {
+  $("#stations-list").innerHTML = stops.map((stop, index) => `<li><button type="button" class="station-item ${state.stationCards.has(stop.stop_id) ? "selected" : ""}" data-stop-id="${escapeHtml(stop.stop_id)}"><span>${index + 1}</span>${escapeHtml(stop.stop_name)}</button></li>`).join("");
+  $("#stations-list").querySelectorAll(".station-item").forEach((button) => {
+    button.addEventListener("click", () => openStationCard(button.dataset.stopId));
+  });
+}
+
+function openStationCard(stopId, placement) {
+  const route = state.routes.find((item) => item.route_id === state.selectedId);
+  const stop = stopsForRoute(state.selectedId).find((item) => item.stop_id === stopId);
+  if (!stop || !route) return;
+  if (state.stationCards.has(stopId)) {
+    focusStationCard(stopId);
+    return;
+  }
+  const station = window.TramFacts && TramFacts.state.loaded
+    ? TramFacts.stationFor(stop.stop_name, route.route_short_name, stop.stop_lat, stop.stop_lon)
+    : null;
+  const card = document.getElementById("station-card-template").content.firstElementChild.cloneNode(true);
+  card.dataset.stopId = stopId;
+  card.querySelector(".station-card-name").textContent = stop.stop_name;
+  card.querySelector(".station-card-name").title = stop.stop_name;
+  card.setAttribute("aria-label", stop.stop_name);
+  document.body.appendChild(card);
+  fillStationCard(card, station);
+  state.stationCards.set(stopId, card);
+  if (placement?.left && placement?.top) {
+    card.style.left = placement.left;
+    card.style.top = placement.top;
+    if (placement.width) card.style.width = placement.width;
+    if (placement.height) card.style.height = placement.height;
+  } else {
+    placeStationCard(card, state.stationCards.size - 1);
+  }
+  bindStationCard(card, stopId);
+  focusStationCard(stopId);
+}
+
+function fillStationCard(card, station) {
+  const weatherValue = card.querySelector(".station-weather-value");
+  const trafficValue = card.querySelector(".station-traffic-value");
+  const pois = card.querySelector(".station-pois");
+  if (!station) {
+    weatherValue.textContent = "—";
+    trafficValue.textContent = "—";
+    pois.innerHTML = "";
+    return;
+  }
+  const temperature = station.temperature == null ? "—" : `${station.temperature > 0 ? "+" : ""}${station.temperature}°`;
+  weatherValue.textContent = temperature;
+  trafficValue.textContent = String(station.roads || 0);
+  const places = String(station.poiExamples || "").split(";").map((item) => item.trim()).filter(Boolean);
+  pois.innerHTML = places.map((place) => `<li>${escapeHtml(place)}</li>`).join("");
+}
+
+function placeStationCard(card, index) {
+  const width = card.offsetWidth || 320;
+  const height = card.offsetHeight || 280;
+  const shift = (index % 6) * 32;
+  card.style.left = `${Math.max(8, Math.round((window.innerWidth - width) / 2 + shift - 64))}px`;
+  card.style.top = `${Math.max(8, Math.round((window.innerHeight - height) / 3 + shift))}px`;
+}
+
+function focusStationCard(stopId) {
+  const card = state.stationCards.get(stopId);
+  if (!card) return;
+  const changed = state.stationStopId !== stopId;
+  state.stationCards.delete(stopId);
+  state.stationCards.set(stopId, card);
+  state.stationStopId = stopId;
+  state.stationCardZ += 1;
+  card.style.zIndex = String(state.stationCardZ);
+  document.querySelectorAll(".station-card").forEach((item) => item.classList.toggle("is-active", item.dataset.stopId === stopId));
+  document.querySelectorAll(".station-item").forEach((button) => button.classList.toggle("selected", state.stationCards.has(button.dataset.stopId)));
+  syncForecastStopNote();
+  if (!changed) return;
+  renderStops();
+  raiseStops();
+}
+
+function clearStationCards() {
+  state.stationCards.forEach((card) => card.remove());
+  state.stationCards.clear();
+  state.stationStopId = null;
+}
+
+function closeStationCard(stopId) {
+  const card = state.stationCards.get(stopId);
+  if (!card) return;
+  card.remove();
+  state.stationCards.delete(stopId);
+  if (state.stationStopId === stopId) {
+    const remaining = [...state.stationCards.keys()];
+    state.stationStopId = remaining.length ? remaining[remaining.length - 1] : null;
+  }
+  document.querySelectorAll(".station-card").forEach((item) => item.classList.toggle("is-active", item.dataset.stopId === state.stationStopId));
+  document.querySelectorAll(".station-item").forEach((button) => button.classList.toggle("selected", state.stationCards.has(button.dataset.stopId)));
+  syncForecastStopNote();
+  renderStops();
+  raiseStops();
+}
+
+function bindStationCard(card, stopId) {
+  const handle = card.querySelector(".station-card-head");
+  let drag = null;
+  card.addEventListener("pointerdown", () => focusStationCard(stopId));
+  handle.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0 || event.target.closest("button")) return;
+    const rect = card.getBoundingClientRect();
+    drag = { dx: event.clientX - rect.left, dy: event.clientY - rect.top };
+    handle.setPointerCapture(event.pointerId);
+  });
+  handle.addEventListener("pointermove", (event) => {
+    if (!drag) return;
+    const width = card.offsetWidth;
+    const left = Math.min(window.innerWidth - 48, Math.max(48 - width, event.clientX - drag.dx));
+    const top = Math.min(window.innerHeight - 36, Math.max(0, event.clientY - drag.dy));
+    card.style.left = `${left}px`;
+    card.style.top = `${top}px`;
+  });
+  const endDrag = () => { drag = null; };
+  handle.addEventListener("pointerup", endDrag);
+  handle.addEventListener("pointercancel", endDrag);
+  card.querySelector(".station-card-close").addEventListener("click", () => closeStationCard(stopId));
+  bindStationResize(card);
+}
+
+function setStationsOpen(open) {
+  const panel = $("#stations-panel");
+  panel.classList.toggle("open", open);
+  $("#stations-toggle").setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+function bindStationResize(card) {
+  const handle = card.querySelector(".station-card-resize");
+  let resizing = null;
+  handle.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    focusStationCard(card.dataset.stopId);
+    const rect = card.getBoundingClientRect();
+    resizing = { x: event.clientX, y: event.clientY, width: rect.width, height: rect.height };
+    handle.setPointerCapture(event.pointerId);
+  });
+  handle.addEventListener("pointermove", (event) => {
+    if (!resizing) return;
+    const width = Math.min(window.innerWidth - 16, Math.max(240, resizing.width + event.clientX - resizing.x));
+    const height = Math.min(window.innerHeight - 16, Math.max(180, resizing.height + event.clientY - resizing.y));
+    card.style.width = `${Math.round(width)}px`;
+    card.style.height = `${Math.round(height)}px`;
+  });
+  const endResize = () => { resizing = null; };
+  handle.addEventListener("pointerup", endResize);
+  handle.addEventListener("pointercancel", endResize);
+}
+
 function renderDemand(route) {
-  const demand = TramDemand.demandFor(route.route_short_name);
-  state.demand = demand;
-  $("#demand-now").textContent = TramDemand.formatPassengers(demand.current.passengers);
+  const vehicles = window.TramFacts && TramFacts.state.loaded ? TramFacts.fleetFor(route.route_short_name) : null;
+  $("#fleet-count").textContent = vehicles == null ? "—" : String(vehicles);
+  const factors = (window.TramFacts && TramFacts.state.loaded && TramFacts.contextFor(route.route_short_name)) || TramDemand.contextFor(route.route_short_name);
+  $("#demand-context").innerHTML = factors.map((item) => `<article class="factor-card ${item.off ? "off" : ""}"><span class="factor-icon">${item.icon}</span><span class="factor-label">${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></article>`).join("");
+  syncForecastControls();
+  if (!window.TramForecast || (!TramForecast.state.loaded && !TramForecast.state.failed)) {
+    $("#demand-now").textContent = "…";
+    return;
+  }
+  if (TramForecast.state.failed) {
+    renderMockDemand(route);
+    return;
+  }
+  const view = forecastView(route);
+  const board = TramForecast.present(view);
+  const shownTotal = board.totalScenario;
+  $("#forecast-total-label").textContent = view.horizon === "day" ? "Посадки за выбранные часы" : view.horizon === "month" ? "Посадки за месяц" : "Посадки за год";
+  $("#demand-now").textContent = TramForecast.formatCount(shownTotal);
   const load = $("#demand-load");
-  load.textContent = TramDemand.formatLoad(demand.index);
-  load.title = "Пик ближайших 12 часов";
-  load.className = `load-pill ${TramDemand.loadTone(demand.index)}`;
+  load.textContent = board.statusLabel;
+  load.className = `load-pill ${board.scenario.apply ? "warm" : board.rows.some((row) => row.status === "forecast" || row.status === "partial-forecast") ? "warm" : "ok"}`;
+  $("#forecast-caption").textContent = view.horizon === "day" ? "Посадки по часам" : view.horizon === "month" ? "Посадки по дням" : "Посадки по месяцам";
+  $("#demand-today").innerHTML = forecastChart(view, board.rows);
+  $("#demand-today").querySelectorAll("[data-period]").forEach((button) => {
+    button.addEventListener("click", () => selectForecastPeriod(button.dataset.period, button.dataset.hour));
+  });
+  $("#forecast-table").innerHTML = forecastTable(board);
+  $("#forecast-table").querySelectorAll("[data-period]").forEach((button) => {
+    button.addEventListener("click", () => selectForecastPeriod(button.dataset.period, button.dataset.hour));
+  });
+  $("#forecast-risk").innerHTML = riskText(view, board.rows);
+  syncHourChip();
+}
+
+function renderMockDemand(route) {
+  const demand = TramDemand.demandFor(route.route_short_name);
+  $("#demand-now").textContent = TramDemand.formatPassengers(demand.current.passengers);
+  $("#demand-load").textContent = "макет";
+  $("#demand-load").className = "load-pill missing";
   $("#demand-today").innerHTML = hourColumns(demand.upcoming);
-  const tomorrowPeak = demand.tomorrow.peak;
-  $("#demand-tomorrow").innerHTML = `<strong>${TramDemand.formatPassengers(demand.tomorrow.total)}</strong><span>пассажиров за день · пик ${TramDemand.formatLoad(tomorrowPeak.load)} в ${TramDemand.formatHour(tomorrowPeak.hour)}</span><div class="hour-chart">${hourColumns(demand.tomorrow.hours)}</div>`;
-  $("#demand-week").innerHTML = weekColumns(demand.week);
-  $("#demand-context").innerHTML = TramDemand.contextFor(route.route_short_name).map((item) => `<article class="factor-card ${item.off ? "off" : ""}" title="${escapeHtml(item.title)}"><span class="factor-icon">${item.icon}</span><span class="factor-label">${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong><span class="factor-note">${escapeHtml(item.note)}</span></article>`).join("");
+  $("#forecast-table").innerHTML = "";
+  $("#forecast-risk").innerHTML = "";
+}
+
+function forecastView(route) {
+  return {
+    route: route.route_short_name,
+    horizon: state.forecast.horizon,
+    date: state.forecast.date,
+    hourFrom: state.forecast.hourFrom,
+    hourTo: state.forecast.hourTo,
+    scenario: {
+      weather: state.forecast.scenario.weather,
+      eventOn: state.forecast.scenario.eventOn,
+      eventCoeff: state.forecast.scenario.eventCoeff,
+      seasonMode: state.forecast.scenario.seasonMode,
+      seasonCoeff: state.forecast.scenario.seasonCoeff,
+    },
+  };
+}
+
+function boardingPill(routeName) {
+  if (!window.TramForecast || (!TramForecast.state.loaded && !TramForecast.state.failed)) {
+    return '<span class="load-pill missing">…</span>';
+  }
+  if (TramForecast.state.failed) {
+    const demand = TramDemand.demandFor(routeName);
+    return `<span class="load-pill missing">${TramDemand.formatLoad(demand.index)}</span>`;
+  }
+  const peak = TramForecast.peakHour(routeName, state.forecast.date, state.forecast.hourFrom, state.forecast.hourTo);
+  if (!peak) return '<span class="load-pill missing">нет</span>';
+  return `<span class="load-pill ${peak.tone === "missing" ? "missing" : peak.tone}">${TramForecast.formatCount(peak.value)}</span>`;
+}
+
+function syncForecastControls() {
+  document.querySelectorAll("[data-horizon]").forEach((button) => button.classList.toggle("active", button.dataset.horizon === state.forecast.horizon));
+  document.querySelectorAll("[data-trips]").forEach((button) => button.classList.toggle("active", Number(button.dataset.trips) === state.forecast.trips));
+  setControlValue("#forecast-date", state.forecast.date);
+  setControlValue("#hour-from", String(state.forecast.hourFrom));
+  setControlValue("#hour-to", String(state.forecast.hourTo));
+  setControlValue("#scenario-weather", state.forecast.scenario.weather);
+  setControlValue("#scenario-event", state.forecast.scenario.eventOn ? "on" : "off");
+  setControlValue("#scenario-season", state.forecast.scenario.seasonMode);
+  setControlValue("#scenario-place", state.forecast.scenario.eventPlace);
+  setControlValue("#scenario-time", state.forecast.scenario.eventTime);
+  setControlValue("#scenario-event-coeff", state.forecast.scenario.eventCoeff);
+  setControlValue("#scenario-season-coeff", state.forecast.scenario.seasonCoeff);
+  $("#scenario-event-fields").classList.toggle("hidden", !state.forecast.scenario.eventOn);
+  $("#scenario-season-field").classList.toggle("hidden", state.forecast.scenario.seasonMode !== "custom");
+}
+
+function setControlValue(selector, value) {
+  const element = $(selector);
+  if (!element || document.activeElement === element) return;
+  element.value = value;
+}
+
+function syncHourChip() {
+  const hours = window.TramForecast ? TramForecast.hourRange(state.forecast.hourFrom, state.forecast.hourTo) : [state.forecast.selectedHour];
+  if (!hours.includes(state.forecast.selectedHour)) state.forecast.selectedHour = hours[0];
+  const slider = $("#hour-slider");
+  slider.min = String(hours[0]);
+  slider.max = String(hours[hours.length - 1]);
+  slider.value = String(state.forecast.selectedHour);
+  $("#hour-readout").textContent = `${String(state.forecast.selectedHour).padStart(2, "0")}:00`;
+  $("#hour-play").textContent = state.forecast.playing ? "❚❚" : "▶";
+  $("#hour-play").setAttribute("aria-pressed", state.forecast.playing ? "true" : "false");
+}
+
+function syncForecastStopNote() {
+  const note = $("#forecast-stop-note");
+  if (!note) return;
+  const card = state.stationStopId ? state.stationCards.get(state.stationStopId) : null;
+  const name = card?.querySelector(".station-card-name")?.textContent;
+  note.textContent = name
+    ? `Остановка «${name}»: прогноз доступен только для маршрута.`
+    : "Остановка или участок: отдельный прогноз посадок не рассчитан.";
+}
+
+function syncSegmentOptions(stops) {
+  const select = $("#forecast-segment");
+  const options = ['<option value="">весь маршрут</option>'].concat(stops.slice(0, -1).map((stop, index) => {
+    const label = `${stop.stop_name} — ${stops[index + 1].stop_name}`;
+    return `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`;
+  }));
+  select.innerHTML = options.join("");
+  if (![...select.options].some((option) => option.value === state.forecast.segment)) state.forecast.segment = "";
+  select.value = state.forecast.segment;
+}
+
+function forecastChart(view, rows) {
+  const max = Math.max(...rows.map((row) => row.scenarioValue || 0), 1);
+  return rows.map((row) => {
+    const selected = view.horizon === "day" ? row.hour === state.forecast.selectedHour : row.period === state.forecast.date || row.period === state.forecast.date.slice(0, 7);
+    const label = view.horizon === "day" ? String(row.hour).padStart(2, "0") : row.period.slice(-2);
+    const height = row.scenarioValue == null ? 8 : Math.max(8, (row.scenarioValue / max) * 100);
+    const title = `${row.period} · база ${TramForecast.formatCount(row.baseValue)} · сценарий ${TramForecast.formatCount(row.scenarioValue)} · обычный ${TramForecast.formatCount(row.usual)} · ${row.statusLabel}`;
+    return `<button type="button" class="hour-col ${selected ? "is-selected" : ""}" data-period="${escapeHtml(row.period)}" data-hour="${row.hour ?? ""}" title="${escapeHtml(title)}"><div class="hour-bar ${row.tone}" style="height:${height}%"></div><span>${escapeHtml(label)}</span></button>`;
+  }).join("");
+}
+
+function forecastTable(board) {
+  const rows = board.rows;
+  const body = rows.map((row) => `<tr class="${row.hour === state.forecast.selectedHour || row.period === state.forecast.date ? "is-selected" : ""}"><td><button type="button" data-period="${escapeHtml(row.period)}" data-hour="${row.hour ?? ""}">${escapeHtml(row.period)}</button></td><td>${TramForecast.formatCount(row.baseValue)}</td><td>${TramForecast.formatCount(row.scenarioValue)}</td><td>${TramForecast.formatCount(row.usual)}</td><td>${escapeHtml(row.statusLabel)}</td></tr>`).join("");
+  return `<thead><tr><th>Период</th><th>База</th><th>Сценарий</th><th>Обычный</th><th>Статус</th></tr></thead><tbody>${body}</tbody><tfoot><tr><th>Итого</th><td>${TramForecast.formatCount(board.totalBase)}</td><td>${TramForecast.formatCount(board.totalScenario)}</td><td></td><td>${escapeHtml(board.statusLabel)}</td></tr></tfoot>`;
+}
+
+function riskText(view, rows) {
+  if (view.horizon !== "day") return "";
+  const risks = rows.filter((row) => row.baseValue != null && row.usual != null && (row.tone === "hot" || row.tone === "warm"));
+  return risks.map((row) => `<article class="risk-row"><strong>${escapeHtml(row.period)}</strong> ${TramForecast.formatCount(row.baseValue)} / ${TramForecast.formatCount(row.usual)} <button type="button" class="text-button" data-period="${escapeHtml(row.period)}" data-hour="${row.hour}">Проверить выпуск и расписание</button></article>`).join("");
+}
+
+function selectForecastPeriod(period, hour) {
+  if (hour !== "" && hour != null) state.forecast.selectedHour = Number(hour);
+  else if (/^\d{4}-\d{2}-\d{2}$/.test(period)) state.forecast.date = period;
+  else if (/^\d{4}-\d{2}$/.test(period)) state.forecast.date = `${period}-01`;
+  const route = state.routes.find((item) => item.route_id === state.selectedId);
+  if (route) renderDemand(route);
+  else syncHourChip();
+}
+
+function refreshForecast() {
+  renderRouteList($("#route-search").value);
+  const route = state.routes.find((item) => item.route_id === state.selectedId);
+  if (route) renderDemand(route);
+  else syncHourChip();
+}
+
+function bindForecastControls() {
+  const hours = Array.from({ length: 24 }, (_, hour) => `<option value="${hour}">${String(hour).padStart(2, "0")}:00</option>`).join("");
+  $("#hour-from").innerHTML = hours;
+  $("#hour-to").innerHTML = hours;
+  $("#hour-from").value = "0";
+  $("#hour-to").value = "23";
+  document.querySelectorAll("[data-horizon]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.forecast.horizon = button.dataset.horizon;
+      refreshForecast();
+    });
+  });
+  $("#forecast-date").addEventListener("change", (event) => {
+    state.forecast.date = event.target.value || state.forecast.date;
+    refreshForecast();
+  });
+  $("#hour-from").addEventListener("change", (event) => {
+    state.forecast.hourFrom = Number(event.target.value);
+    refreshForecast();
+  });
+  $("#hour-to").addEventListener("change", (event) => {
+    state.forecast.hourTo = Number(event.target.value);
+    refreshForecast();
+  });
+  $("#forecast-segment").addEventListener("change", (event) => {
+    state.forecast.segment = event.target.value;
+    refreshForecast();
+  });
+  $("#hour-slider").addEventListener("input", (event) => {
+    state.forecast.selectedHour = Number(event.target.value);
+    refreshForecast();
+  });
+  $("#hour-play").addEventListener("click", toggleHourPlay);
+  $("#scenario-weather").addEventListener("change", (event) => {
+    state.forecast.scenario.weather = event.target.value;
+    refreshForecast();
+  });
+  $("#scenario-event").addEventListener("change", (event) => {
+    state.forecast.scenario.eventOn = event.target.value === "on";
+    refreshForecast();
+  });
+  $("#scenario-season").addEventListener("change", (event) => {
+    state.forecast.scenario.seasonMode = event.target.value;
+    refreshForecast();
+  });
+  ["#scenario-place", "#scenario-time", "#scenario-event-coeff", "#scenario-season-coeff"].forEach((selector) => {
+    $(selector).addEventListener("input", (event) => {
+      const field = { "#scenario-place": "eventPlace", "#scenario-time": "eventTime", "#scenario-event-coeff": "eventCoeff", "#scenario-season-coeff": "seasonCoeff" }[selector];
+      state.forecast.scenario[field] = event.target.value;
+      refreshForecast();
+    });
+  });
+  $("#scenario-reset").addEventListener("click", () => {
+    state.forecast.scenario = { weather: "base", eventOn: false, eventPlace: "", eventTime: "", eventCoeff: "", seasonMode: "base", seasonCoeff: "" };
+    refreshForecast();
+  });
+  document.querySelectorAll("[data-trips]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.forecast.trips = Number(button.dataset.trips);
+      refreshForecast();
+    });
+  });
+  $("#forecast-csv").addEventListener("click", downloadForecastCsv);
+  $("#forecast-risk").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-period]");
+    if (!button) return;
+    selectForecastPeriod(button.dataset.period, button.dataset.hour);
+  });
+}
+
+function toggleHourPlay() {
+  state.forecast.playing = !state.forecast.playing;
+  clearInterval(state.forecast.playTimer);
+  syncHourChip();
+  if (!state.forecast.playing) return;
+  state.forecast.playTimer = window.setInterval(() => {
+    const hours = TramForecast.hourRange(state.forecast.hourFrom, state.forecast.hourTo);
+    const index = Math.max(0, hours.indexOf(state.forecast.selectedHour));
+    state.forecast.selectedHour = hours[(index + 1) % hours.length];
+    refreshForecast();
+  }, 800);
+}
+
+function downloadForecastCsv() {
+  const route = state.routes.find((item) => item.route_id === state.selectedId);
+  if (!route || !window.TramForecast?.state.loaded) return;
+  const board = TramForecast.present(forecastView(route));
+  const segmentNote = state.forecast.segment ? `Участок без отдельного прогноза: ${state.forecast.segment}` : "Прогноз только для маршрута";
+  const rows = board.rows.map((row) => ({
+    период: row.period,
+    маршрут: route.route_short_name,
+    точка: "маршрут",
+    базовые_посадки: row.baseValue ?? "",
+    сценарные_посадки: row.scenarioValue ?? "",
+    единицы: "посадки",
+    статус: row.baseValue == null ? "нет данных" : board.scenario.apply ? board.statusLabel : row.statusLabel,
+    коэффициент: board.scenario.coefficient,
+    примечание: segmentNote,
+  }));
+  rows.push({
+    период: "итого",
+    маршрут: route.route_short_name,
+    точка: "маршрут",
+    базовые_посадки: board.totalBase ?? "",
+    сценарные_посадки: board.totalScenario ?? "",
+    единицы: "посадки",
+    статус: board.statusLabel,
+    коэффициент: board.scenario.coefficient,
+    примечание: segmentNote,
+  });
+  const headers = Object.keys(rows[0] || { период: "" });
+  const quote = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+  const body = [headers.join(";"), ...rows.map((row) => headers.map((header) => quote(row[header])).join(";"))].join("\r\n");
+  const blob = new Blob([`\uFEFF${body}`], { type: "text/csv;charset=utf-8" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  const [from, to] = [state.forecast.hourFrom, state.forecast.hourTo].sort((left, right) => left - right);
+  link.download = `tram-${route.route_short_name}-${state.forecast.horizon}-${state.forecast.date}-${String(from).padStart(2, "0")}-${String(to).padStart(2, "0")}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 function weekColumns(days) {
@@ -644,8 +1300,148 @@ function hourColumns(hours) {
   return hours.map((item) => `<div class="hour-col" title="${TramDemand.formatHour(item.hour)} · ${TramDemand.formatPassengers(item.passengers)} пасс. · ${TramDemand.formatLoad(item.load)}"><div class="hour-bar ${TramDemand.loadTone(item.load)}" style="height:${Math.max(8, (item.passengers / max) * 100)}%"></div><span>${String(item.hour).padStart(2, "0")}</span></div>`).join("");
 }
 
+function readMapState() {
+  try {
+    return JSON.parse(sessionStorage.getItem(MAP_STATE_KEY)) || null;
+  } catch {
+    return null;
+  }
+}
+
+function saveMapState() {
+  const route = state.routes.find((item) => item.route_id === state.selectedId);
+  const cards = [...state.stationCards.entries()].map(([stopId, card]) => {
+    const stop = stopsForRoute(state.selectedId).find((item) => item.stop_id === stopId);
+    const name = stop?.stop_name || card.querySelector(".station-card-name")?.textContent || "";
+    return {
+      name,
+      left: card.style.left,
+      top: card.style.top,
+      width: card.style.width,
+      height: card.style.height,
+      active: stopId === state.stationStopId,
+    };
+  }).filter((card) => card.name);
+  const snapshot = {
+    route: route?.route_short_name || "",
+    search: $("#route-search")?.value || "",
+    stationsOpen: $("#stations-panel")?.classList.contains("open") ?? true,
+    lineScale: state.lineScale,
+    sidebarWidth: $(".sidebar")?.style.width || "",
+    routeCardWidth: $("#route-details")?.style.getPropertyValue("--route-card-width") || "",
+    forecast: {
+      horizon: state.forecast.horizon,
+      date: state.forecast.date,
+      hourFrom: state.forecast.hourFrom,
+      hourTo: state.forecast.hourTo,
+      selectedHour: state.forecast.selectedHour,
+      segment: state.forecast.segment,
+      trips: state.forecast.trips,
+      scenario: { ...state.forecast.scenario },
+    },
+    cards,
+  };
+  sessionStorage.setItem(MAP_STATE_KEY, JSON.stringify(snapshot));
+}
+
+function hasExplicitMapLink() {
+  const params = new URLSearchParams(location.search);
+  const routeName = decodeURIComponent(location.hash.replace(/^#/, "").split("&")[0]);
+  return Boolean(routeName || params.get("date") || params.get("hour"));
+}
+
+function applySavedLayout(saved) {
+  const scale = Number(saved.lineScale);
+  if (scale >= 0.5 && scale <= 2.2) {
+    state.lineScale = scale;
+    $("#line-size").value = String(scale);
+  }
+  const sidebarWidth = parseFloat(saved.sidebarWidth);
+  if (sidebarWidth >= 220 && sidebarWidth <= 560) {
+    const sidebar = $(".sidebar");
+    sidebar.style.width = `${sidebarWidth}px`;
+    sidebar.style.flexBasis = `${sidebarWidth}px`;
+    state.map.invalidateSize({ pan: false });
+    frameMap();
+  }
+  const cardWidth = parseFloat(saved.routeCardWidth);
+  if (cardWidth >= 280) {
+    const card = $("#route-details");
+    card.classList.add("is-sized");
+    card.style.setProperty("--route-card-width", `${cardWidth}px`);
+    $(".map-area").style.setProperty("--route-card-width", `${cardWidth}px`);
+  }
+  if (typeof saved.stationsOpen === "boolean") setStationsOpen(saved.stationsOpen);
+}
+
+function restoreForecast(forecast) {
+  if (!forecast || typeof forecast !== "object") return;
+  if (forecast.horizon === "day" || forecast.horizon === "month" || forecast.horizon === "year") state.forecast.horizon = forecast.horizon;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(forecast.date || "") && forecast.date >= "2025-01-01" && forecast.date <= "2025-12-31") state.forecast.date = forecast.date;
+  if (Number.isInteger(forecast.hourFrom) && forecast.hourFrom >= 0 && forecast.hourFrom <= 23) state.forecast.hourFrom = forecast.hourFrom;
+  if (Number.isInteger(forecast.hourTo) && forecast.hourTo >= 0 && forecast.hourTo <= 23) state.forecast.hourTo = forecast.hourTo;
+  if (Number.isInteger(forecast.selectedHour) && forecast.selectedHour >= 0 && forecast.selectedHour <= 23) state.forecast.selectedHour = forecast.selectedHour;
+  if (typeof forecast.segment === "string") state.forecast.segment = forecast.segment;
+  if (forecast.trips === 0 || forecast.trips === 1 || forecast.trips === 2) state.forecast.trips = forecast.trips;
+  const scenario = forecast.scenario || {};
+  if (scenario.weather === "base" || scenario.weather === "rain" || scenario.weather === "heavy") state.forecast.scenario.weather = scenario.weather;
+  if (typeof scenario.eventOn === "boolean") state.forecast.scenario.eventOn = scenario.eventOn;
+  if (typeof scenario.eventPlace === "string") state.forecast.scenario.eventPlace = scenario.eventPlace;
+  if (typeof scenario.eventTime === "string") state.forecast.scenario.eventTime = scenario.eventTime;
+  if (typeof scenario.eventCoeff === "string") state.forecast.scenario.eventCoeff = scenario.eventCoeff;
+  if (scenario.seasonMode === "base" || scenario.seasonMode === "custom") state.forecast.scenario.seasonMode = scenario.seasonMode;
+  if (typeof scenario.seasonCoeff === "string") state.forecast.scenario.seasonCoeff = scenario.seasonCoeff;
+  state.forecast.playing = false;
+}
+
+function restoreStationCards(cards) {
+  if (!Array.isArray(cards) || !state.selectedId) return;
+  const stops = stopsForRoute(state.selectedId);
+  cards.forEach((item) => {
+    const stop = stops.find((entry) => entry.stop_name === item.name);
+    if (stop) openStationCard(stop.stop_id, item);
+  });
+  const active = [...cards].reverse().find((item) => item.active) || cards[cards.length - 1];
+  const focused = active && stops.find((entry) => entry.stop_name === active.name);
+  if (focused) focusStationCard(focused.stop_id);
+}
+
+function applySavedMapState() {
+  const saved = readMapState();
+  if (!saved || state.usingDemo) return;
+  applySavedLayout(saved);
+  if (hasExplicitMapLink()) return;
+  restoreForecast(saved.forecast);
+  if (typeof saved.search === "string") $("#route-search").value = saved.search;
+  const route = state.routes.find((item) => item.route_short_name === String(saved.route || ""));
+  if (!route) {
+    renderRouteList($("#route-search").value);
+    syncHourChip();
+    return;
+  }
+  const segment = state.forecast.segment;
+  selectRoute(route.route_id);
+  if (segment) {
+    state.forecast.segment = segment;
+    syncSegmentOptions(stopsForRoute(route.route_id));
+    renderDemand(route);
+  }
+  restoreStationCards(saved.cards);
+}
+
 function selectFromHash() {
-  const routeName = decodeURIComponent(location.hash.replace(/^#/, ""));
+  const params = new URLSearchParams(location.search);
+  const date = params.get("date");
+  const hour = params.get("hour");
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date || "") && date >= "2025-01-01" && date <= "2025-12-31") {
+    state.forecast.date = date;
+    state.forecast.horizon = "day";
+  }
+  if (hour != null && hour !== "" && Number(hour) >= 0 && Number(hour) <= 23) {
+    state.forecast.selectedHour = Number(hour);
+    state.forecast.horizon = "day";
+  }
+  const routeName = decodeURIComponent(location.hash.replace(/^#/, "").split("&")[0]);
   if (!routeName) return;
   const route = state.routes.find((item) => item.route_short_name === routeName);
   if (route) selectRoute(route.route_id);
@@ -667,8 +1463,12 @@ function updateStats() {
 }
 
 function fitMap() {
-  state.map.setView(MOSCOW, MOSCOW_MAP_ZOOM, { animate: false });
-  setTimeout(() => state.map.invalidateSize({ pan: false }), 120);
+  state.map.invalidateSize({ pan: false });
+  frameMap();
+  setTimeout(() => {
+    state.map.invalidateSize({ pan: false });
+    frameMap();
+  }, 120);
 }
 
 async function downloadGtfs() {

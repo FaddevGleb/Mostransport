@@ -107,6 +107,7 @@ const TramDemand = (() => {
     rain: svgIcon('<path d="M7 16h9.5a3.5 3.5 0 0 0 .4-7 5.5 5.5 0 0 0-10.6 1.4A3.2 3.2 0 0 0 7 16z"/><path d="M8.5 18.5 8 21M12 18.5 11.5 21M15.5 18.5 15 21"/>'),
     match: svgIcon('<circle cx="12" cy="12" r="8"/><path d="M12 4c2 2.4 3 4.8 3 8s-1 5.6-3 8M12 4c-2 2.4-3 4.8-3 8s1 5.6 3 8M4 12h16M6.2 8h11.6M6.2 16h11.6"/>'),
     metro: svgIcon('<circle cx="12" cy="12" r="8"/><path d="M8 16V9.5L12 8l4 1.5V16M8 12h8"/>'),
+    fleet: svgIcon('<path d="M5 16V9.2L8 7h8l3 2.2V16"/><path d="M5 12h14"/><circle cx="8" cy="16" r="1.4"/><circle cx="16" cy="16" r="1.4"/><path d="M8 7v5M16 7v5"/>'),
     accident: svgIcon('<path d="M12 3 3 19h18L12 3z"/><path d="M12 9v5M12 16.5v.5"/>'),
     concert: svgIcon('<path d="M9 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/><path d="M11.5 15.5V6l8-2v9.5"/><path d="M17 15.5a2.5 2.5 0 1 0 0-5"/>'),
     works: svgIcon('<path d="M14.5 4.5 19.5 9.5M9 15l-5 5M16 8l-8 8"/><path d="M14 6a4 4 0 0 1 4 4"/>'),
@@ -117,6 +118,8 @@ const TramDemand = (() => {
     store: svgIcon('<path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/><path d="M9 13v3M15 13v3"/>'),
     park: svgIcon('<path d="M12 21V11"/><path d="M7 13a5 5 0 1 1 10 0H7z"/><path d="M8 21h8"/>'),
     university: svgIcon('<path d="M3 10 12 5l9 5-9 5-9-5z"/><path d="M7 12.5V17c2.4 1.4 7.6 1.4 10 0v-4.5"/>'),
+    traffic: svgIcon('<path d="M4 16h16"/><path d="M6 16V9l3-3h6l3 3v7"/><circle cx="8" cy="16" r="1.5"/><circle cx="16" cy="16" r="1.5"/>'),
+    poi: svgIcon('<path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"/><circle cx="12" cy="11" r="2"/>'),
   };
 
   const HOLIDAYS = ["День города", "Фестиваль", "Каникулы"];

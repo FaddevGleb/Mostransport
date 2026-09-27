@@ -1,0 +1,180 @@
+[{"stream_name":"stderr","time":5.400848014,"data":"/usr/local/lib/python3.12/dist-packages/nbformat/__init__.py:96: MissingIDFieldWarning: Cell is missing an id field, this will become a hard error in future nbformat versions. You may want to use `normalize()` on your notebooks before validations (available since nbformat 5.1.4). Previous versions of nbformat are fixing this issue transparently, and will stop doing so in the future.\n"}
+,{"stream_name":"stderr","time":5.40091647,"data":"  validate(nb)\n"}
+,{"stream_name":"stderr","time":6.137403682,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":6.137431994,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":6.137442884,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":6.137445854,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stderr","time":6.686627043,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":6.686653031,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":6.686658297,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":6.686662288,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stdout","time":11.633306762,"data":"GPU 0: Tesla T4 (UUID: GPU-01ca14d8-889a-5dd4-8f4c-2a74d9ac2c74)\n"}
+,{"stream_name":"stdout","time":11.633362992,"data":"GPU 1: Tesla T4 (UUID: GPU-f487c767-e1ad-bfe1-07c8-6b51cc0ebcf1)\n"}
+,{"stream_name":"stdout","time":11.633369116,"data":"\n"}
+,{"stream_name":"stdout","time":11.633373348,"data":"cuda 2\n"}
+,{"stream_name":"stdout","time":11.642259077,"data":"0 Tesla T4\n"}
+,{"stream_name":"stdout","time":11.642281124,"data":"1 Tesla T4\n"}
+,{"stream_name":"stdout","time":29.469837445,"data":"inputs ['datasets', 'mstrans-enrichment']\n"}
+,{"stream_name":"stdout","time":29.469880579,"data":"DATA /kaggle/input/datasets/kirillvorotnikov2007/mstrans\n"}
+,{"stream_name":"stdout","time":29.469886349,"data":"ENR /kaggle/input/mstrans-enrichment\n"}
+,{"stream_name":"stdout","time":29.745959345,"data":"missing features\n"}
+,{"stream_name":"stdout","time":29.745995665,"data":" temp       0\n"}
+,{"stream_name":"stdout","time":29.746002278,"data":"holiday    0\n"}
+,{"stream_name":"stdout","time":29.746007227,"data":"offices    0\n"}
+,{"stream_name":"stderr","time":29.916047465,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stderr","time":29.916067446,"data":"\n"}
+,{"stream_name":"stderr","time":29.916072896,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stdout","time":32.064496045,"data":"rows train 58320 test 14640 mean 804.4\n"}
+,{"stream_name":"stdout","time":32.064523146,"data":"route 1 month 1 day 1 dow 2 hour 0 weekend 0 dayoff 1 holiday newyear preholiday 1 short 0 temp -1.9 precip 0.1 wind 12.7 code 71 snow 1 rain 0 fog 0 offices 21 offices_hit 17 acc7 1 acc30 3 tram7 1 lag24 0 lag168 0\n"}
+,{"stream_name":"stdout","time":59.523058439,"data":"packed 58320 tokens 78 width 96\n"}
+,{"stream_name":"stdout","time":66.117321308,"data":"packed 14640 tokens 77 width 96\n"}
+,{"stream_name":"stdout","time":99.626761018,"data":"packed 72960 tokens 78 width 96\n"}
+,{"stream_name":"stdout","time":99.655391116,"data":"mean boardings 804.4\n"}
+,{"stream_name":"stderr","time":101.498604754,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":101.498631909,"data":"- configuration_bert.py\n"}
+,{"stream_name":"stderr","time":101.498636484,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":101.498640381,"data":"\n"}
+,{"stream_name":"stderr","time":101.498643676,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":101.498647274,"data":"- configuration_bert.py\n"}
+,{"stream_name":"stderr","time":101.498650569,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":102.379816064,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":102.379858449,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":102.379863517,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":102.379868376,"data":"\n"}
+,{"stream_name":"stderr","time":102.379872101,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":102.379876059,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":102.379880054,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":102.808593169,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":102.808618884,"data":"- flash_attn_triton.py\n"}
+,{"stream_name":"stderr","time":102.808623052,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":102.808627082,"data":"\n"}
+,{"stream_name":"stderr","time":102.808630525,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":102.808634476,"data":"- flash_attn_triton.py\n"}
+,{"stream_name":"stderr","time":102.808638022,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":102.809427576,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":102.80946421,"data":"- bert_layers.py\n"}
+,{"stream_name":"stderr","time":102.809469154,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":102.809472633,"data":"- flash_attn_triton.py\n"}
+,{"stream_name":"stderr","time":102.809476012,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stderr","time":102.809479771,"data":"\n"}
+,{"stream_name":"stderr","time":102.809482973,"data":"A new version of the following files was downloaded from https://huggingface.co/mosaicml/mosaic-bert-base:\n"}
+,{"stream_name":"stderr","time":102.809496633,"data":"- bert_layers.py\n"}
+,{"stream_name":"stderr","time":102.809499969,"data":"- bert_padding.py\n"}
+,{"stream_name":"stderr","time":102.809503223,"data":"- flash_attn_triton.py\n"}
+,{"stream_name":"stderr","time":102.809506644,"data":". Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.\n"}
+,{"stream_name":"stdout","time":104.380650785,"data":"backbone mosaic-bert-base, random weights\n"}
+,{"stream_name":"stdout","time":104.547219942,"data":"phase 1: train Jan-Aug\n"}
+,{"stream_name":"stderr","time":108.347451876,"data":"Traceback (most recent call last):\n"}
+,{"stream_name":"stderr","time":108.347481768,"data":"  File \"\u003cstring\u003e\", line 1, in \u003cmodule\u003e\n"}
+,{"stream_name":"stderr","time":108.347488219,"data":"  File \"/usr/local/lib/python3.12/dist-packages/papermill/execute.py\", line 131, in execute_notebook\n"}
+,{"stream_name":"stderr","time":108.347656879,"data":"    raise_for_execution_errors(nb, output_path)\n"}
+,{"stream_name":"stderr","time":108.347708358,"data":"  File \"/usr/local/lib/python3.12/dist-packages/papermill/execute.py\", line 251, in raise_for_execution_errors\n"}
+,{"stream_name":"stderr","time":108.347985321,"data":"    raise error\n"}
+,{"stream_name":"stderr","time":108.348215954,"data":"papermill.exceptions.PapermillExecutionError: \n"}
+,{"stream_name":"stderr","time":108.348227181,"data":"---------------------------------------------------------------------------\n"}
+,{"stream_name":"stderr","time":108.348232548,"data":"Exception encountered at \"In [3]\":\n"}
+,{"stream_name":"stderr","time":108.348243211,"data":"---------------------------------------------------------------------------\n"}
+,{"stream_name":"stderr","time":108.348247781,"data":"StopIteration                             Traceback (most recent call last)\n"}
+,{"stream_name":"stderr","time":108.348252834,"data":"/tmp/ipykernel_23/2211430078.py in \u003ccell line: 0\u003e()\n"}
+,{"stream_name":"stderr","time":108.348257504,"data":"    157 \n"}
+,{"stream_name":"stderr","time":108.348262481,"data":"    158 print(\"phase 1: train Jan-Aug\", flush=True)\n"}
+,{"stream_name":"stderr","time":108.348267966,"data":"--\u003e 159 fit(model, train_loader, optimizer, scaler, EPOCHS_TRAIN)\n"}
+,{"stream_name":"stderr","time":108.34827337,"data":"    160 wape, score = evaluate(model, test_loader, \"test Sep-Oct before seeing test labels\")\n"}
+,{"stream_name":"stderr","time":108.34827909,"data":"    161 (OUT / \"metrics.txt\").write_text(f\"sep_oct_wape={wape:.6f}\\nsep_oct_score={score:.6f}\\n\", encoding=\"utf-8\")\n"}
+,{"stream_name":"stderr","time":108.348284323,"data":"\n"}
+,{"stream_name":"stderr","time":108.348288486,"data":"/tmp/ipykernel_23/2211430078.py in fit(model, loader, optimizer, scaler, epochs)\n"}
+,{"stream_name":"stderr","time":108.348292793,"data":"     99             optimizer.zero_grad(set_to_none=True)\n"}
+,{"stream_name":"stderr","time":108.348297029,"data":"    100             with torch.autocast(device_type=\"cuda\", dtype=torch.float16):\n"}
+,{"stream_name":"stderr","time":108.348301508,"data":"--\u003e 101                 pred = model(ids, mask)\n"}
+,{"stream_name":"stderr","time":108.348305836,"data":"    102                 loss = F.l1_loss(pred, target)\n"}
+,{"stream_name":"stderr","time":108.348310139,"data":"    103             scaler.scale(loss).backward()\n"}
+,{"stream_name":"stderr","time":108.34831438,"data":"\n"}
+,{"stream_name":"stderr","time":108.348318458,"data":"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py in _wrapped_call_impl(self, *args, **kwargs)\n"}
+,{"stream_name":"stderr","time":108.348330756,"data":"   1774             return self._compiled_call_impl(*args, **kwargs)  # type: ignore[misc]\n"}
+,{"stream_name":"stderr","time":108.348334526,"data":"   1775         else:\n"}
+,{"stream_name":"stderr","time":108.348341611,"data":"-\u003e 1776             return self._call_impl(*args, **kwargs)\n"}
+,{"stream_name":"stderr","time":108.348344731,"data":"   1777 \n"}
+,{"stream_name":"stderr","time":108.348358191,"data":"   1778     # torchrec tests the code consistency with the following code\n"}
+,{"stream_name":"stderr","time":108.348362111,"data":"\n"}
+,{"stream_name":"stderr","time":108.34836586,"data":"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py in _call_impl(self, *args, **kwargs)\n"}
+,{"stream_name":"stderr","time":108.348369773,"data":"   1785                 or _global_backward_pre_hooks or _global_backward_hooks\n"}
+,{"stream_name":"stderr","time":108.348373918,"data":"   1786                 or _global_forward_hooks or _global_forward_pre_hooks):\n"}
+,{"stream_name":"stderr","time":108.34837849,"data":"-\u003e 1787             return forward_call(*args, **kwargs)\n"}
+,{"stream_name":"stderr","time":108.348381938,"data":"   1788 \n"}
+,{"stream_name":"stderr","time":108.348385169,"data":"   1789         result = None\n"}
+,{"stream_name":"stderr","time":108.348388461,"data":"\n"}
+,{"stream_name":"stderr","time":108.348391625,"data":"/usr/local/lib/python3.12/dist-packages/torch/nn/parallel/data_parallel.py in forward(self, *inputs, **kwargs)\n"}
+,{"stream_name":"stderr","time":108.348395174,"data":"    195                 return self.module(*inputs[0], **module_kwargs[0])\n"}
+,{"stream_name":"stderr","time":108.348399539,"data":"    196             replicas = self.replicate(self.module, self.device_ids[: len(inputs)])\n"}
+,{"stream_name":"stderr","time":108.348403016,"data":"--\u003e 197             outputs = self.parallel_apply(replicas, inputs, module_kwargs)\n"}
+,{"stream_name":"stderr","time":108.348406519,"data":"    198             return self.gather(outputs, self.output_device)\n"}
+,{"stream_name":"stderr","time":108.348409937,"data":"    199 \n"}
+,{"stream_name":"stderr","time":108.348413108,"data":"\n"}
+,{"stream_name":"stderr","time":108.348416221,"data":"/usr/local/lib/python3.12/dist-packages/torch/nn/parallel/data_parallel.py in parallel_apply(self, replicas, inputs, kwargs)\n"}
+,{"stream_name":"stderr","time":108.348419761,"data":"    212         self, replicas: Sequence[T], inputs: Sequence[Any], kwargs: Any\n"}
+,{"stream_name":"stderr","time":108.348423219,"data":"    213     ) -\u003e list[Any]:\n"}
+,{"stream_name":"stderr","time":108.348426599,"data":"--\u003e 214         return parallel_apply(\n"}
+,{"stream_name":"stderr","time":108.348429938,"data":"    215             replicas, inputs, kwargs, self.device_ids[: len(replicas)]\n"}
+,{"stream_name":"stderr","time":108.348437719,"data":"    216         )\n"}
+,{"stream_name":"stderr","time":108.348440608,"data":"\n"}
+,{"stream_name":"stderr","time":108.348452954,"data":"/usr/local/lib/python3.12/dist-packages/torch/nn/parallel/parallel_apply.py in parallel_apply(modules, inputs, kwargs_tup, devices)\n"}
+,{"stream_name":"stderr","time":108.348457466,"data":"    131         output = results[i]\n"}
+,{"stream_name":"stderr","time":108.348461263,"data":"    132         if isinstance(output, ExceptionWrapper):\n"}
+,{"stream_name":"stderr","time":108.348465415,"data":"--\u003e 133             output.reraise()\n"}
+,{"stream_name":"stderr","time":108.348469569,"data":"    134         outputs.append(output)\n"}
+,{"stream_name":"stderr","time":108.348477228,"data":"    135     return outputs\n"}
+,{"stream_name":"stderr","time":108.348480539,"data":"\n"}
+,{"stream_name":"stderr","time":108.348483684,"data":"/usr/local/lib/python3.12/dist-packages/torch/_utils.py in reraise(self)\n"}
+,{"stream_name":"stderr","time":108.348487033,"data":"    773             # be constructed, don't try to instantiate since we don't know how to\n"}
+,{"stream_name":"stderr","time":108.348490463,"data":"    774             raise RuntimeError(msg) from None\n"}
+,{"stream_name":"stderr","time":108.348493751,"data":"--\u003e 775         raise exception\n"}
+,{"stream_name":"stderr","time":108.348497053,"data":"    776 \n"}
+,{"stream_name":"stderr","time":108.3485003,"data":"    777 \n"}
+,{"stream_name":"stderr","time":108.3485035,"data":"\n"}
+,{"stream_name":"stderr","time":108.348506651,"data":"StopIteration: Caught StopIteration in replica 0 on device 0.\n"}
+,{"stream_name":"stderr","time":108.348510018,"data":"Original Traceback (most recent call last):\n"}
+,{"stream_name":"stderr","time":108.348513344,"data":"  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/parallel/parallel_apply.py\", line 103, in _worker\n"}
+,{"stream_name":"stderr","time":108.348516951,"data":"    output = module(*input, **kwargs)\n"}
+,{"stream_name":"stderr","time":108.348520133,"data":"             ^^^^^^^^^^^^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":108.348527176,"data":"  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py\", line 1776, in _wrapped_call_impl\n"}
+,{"stream_name":"stderr","time":108.348545565,"data":"    return self._call_impl(*args, **kwargs)\n"}
+,{"stream_name":"stderr","time":108.348549716,"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":108.348553571,"data":"  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py\", line 1787, in _call_impl\n"}
+,{"stream_name":"stderr","time":108.348557927,"data":"    return forward_call(*args, **kwargs)\n"}
+,{"stream_name":"stderr","time":108.348561957,"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":108.348565325,"data":"  File \"/tmp/ipykernel_23/2211430078.py\", line 77, in forward\n"}
+,{"stream_name":"stderr","time":108.348568788,"data":"    return F.softplus(self.head(self._cls(input_ids, attention_mask))).squeeze(-1)\n"}
+,{"stream_name":"stderr","time":108.348572309,"data":"                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":108.348576236,"data":"  File \"/tmp/ipykernel_23/2211430078.py\", line 66, in _cls\n"}
+,{"stream_name":"stderr","time":108.348579762,"data":"    sequence, _ = self.encoder(\n"}
+,{"stream_name":"stderr","time":108.348583072,"data":"                  ^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":108.348586373,"data":"  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py\", line 1776, in _wrapped_call_impl\n"}
+,{"stream_name":"stderr","time":108.348589951,"data":"    return self._call_impl(*args, **kwargs)\n"}
+,{"stream_name":"stderr","time":108.348593246,"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":108.348596488,"data":"  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py\", line 1787, in _call_impl\n"}
+,{"stream_name":"stderr","time":108.348600065,"data":"    return forward_call(*args, **kwargs)\n"}
+,{"stream_name":"stderr","time":108.348603379,"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":108.348606688,"data":"  File \"/root/.cache/huggingface/modules/transformers_modules/mosaicml/mosaic_hyphen_bert_hyphen_base/c89bbadc24278928f22bcdd7de6b61a5a2d08553/bert_layers.py\", line 669, in forward\n"}
+,{"stream_name":"stderr","time":108.348613604,"data":"    encoder_outputs = self.encoder(\n"}
+,{"stream_name":"stderr","time":108.348617119,"data":"                      ^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":108.348623778,"data":"  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py\", line 1776, in _wrapped_call_impl\n"}
+,{"stream_name":"stderr","time":108.348626346,"data":"    return self._call_impl(*args, **kwargs)\n"}
+,{"stream_name":"stderr","time":108.348638273,"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":108.348642101,"data":"  File \"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py\", line 1787, in _call_impl\n"}
+,{"stream_name":"stderr","time":108.348646415,"data":"    return forward_call(*args, **kwargs)\n"}
+,{"stream_name":"stderr","time":108.348650014,"data":"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":108.348653882,"data":"  File \"/root/.cache/huggingface/modules/transformers_modules/mosaicml/mosaic_hyphen_bert_hyphen_base/c89bbadc24278928f22bcdd7de6b61a5a2d08553/bert_layers.py\", line 477, in forward\n"}
+,{"stream_name":"stderr","time":108.348657675,"data":"    dtype=next(self.parameters()).dtype)  # fp16 compatibility\n"}
+,{"stream_name":"stderr","time":108.348661112,"data":"          ^^^^^^^^^^^^^^^^^^^^^^^\n"}
+,{"stream_name":"stderr","time":108.348664394,"data":"StopIteration\n"}
+,{"stream_name":"stderr","time":108.348667643,"data":"\n"}
+,{"stream_name":"stderr","time":108.348670745,"data":"\n"}
+,{"stream_name":"stderr","time":110.318024921,"data":"/usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":110.318051793,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":110.470160322,"data":"/usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":110.470187082,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":111.044111986,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to notebook\n"}
+,{"stream_name":"stderr","time":111.354759319,"data":"[NbConvertApp] Writing 146431 bytes to __notebook__.ipynb\n"}
+,{"stream_name":"stderr","time":113.664709147,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to html\n"}
+,{"stream_name":"stderr","time":114.509522137,"data":"[NbConvertApp] Writing 469566 bytes to __results__.html\n"}
+]

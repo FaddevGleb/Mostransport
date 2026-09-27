@@ -1,0 +1,6 @@
+sep_oct_wape=0.159086
+sep_oct_score=0.840914
+sep_oct_points=4
+sep_oct_weighted=8
+baseline_wape=0.199355
+baseline_score=0.800645

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Вход · Трамваи Москвы</title>
+    <link rel="stylesheet" href="./styles.css?v=20260927-auth" />
+  </head>
+  <body class="login-page">
+    <main class="login-card">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">Т</div>
+        <div>
+          <p class="eyebrow">МОСТРАНСПОРТ</p>
+          <h1>Вход</h1>
+        </div>
+      </div>
+      <form method="post" action="/login" autocomplete="on">
+        <input type="hidden" name="next" value="">
+        <label class="field-label" for="login">Логин</label>
+        <input id="login" class="text-input" name="login" type="text" autocomplete="username" required maxlength="64">
+        <label class="field-label" for="password">Пароль</label>
+        <input id="password" class="text-input" name="password" type="password" autocomplete="current-password" required maxlength="256">
+        <p id="login-error" class="login-error" role="alert"></p>
+        <button class="primary-button" type="submit">Войти</button>
+      </form>
+    </main>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const next = params.get("next");
+      if (next && next.startsWith("/") && !next.startsWith("//")) {
+        document.querySelector("input[name=next]").value = next;
+      }
+      if (params.get("error")) {
+        document.querySelector("#login-error").textContent = "Неверный логин или пароль";
+      }
+    </script>
+  </body>
+</html>

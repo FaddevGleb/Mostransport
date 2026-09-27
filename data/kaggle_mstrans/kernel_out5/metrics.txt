@@ -1,0 +1,6 @@
+next_week_wape=0.109383
+next_week_score=0.890617
+next_week_points=5
+next_week_weighted=10
+copy_week_wape=0.109361
+copy_week_score=0.890639

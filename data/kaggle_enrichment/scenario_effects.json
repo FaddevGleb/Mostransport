@@ -1,0 +1,205 @@
+{
+  "source": "Январь–октябрь 2025: labels_day_train/test и weather_hourly.csv. Коэффициент — отношение медианы посадок в целевую погоду к медиане всех наблюдаемых часов того же маршрута и часа.",
+  "baseline": "Базовый прогноз ноября–декабря построен по недельной истории и календарю, без отдельного погодного множителя. Сезон повторно не умножается.",
+  "minHours": 40,
+  "minDays": 8,
+  "weather": {
+    "rain": {
+      "1": {
+        "coefficient": 0.953,
+        "estimated": 0.953,
+        "targetHours": 1106,
+        "baseHours": 6196,
+        "targetDays": 178,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "7": {
+        "coefficient": 0.95,
+        "estimated": 0.95,
+        "targetHours": 1165,
+        "baseHours": 6598,
+        "targetDays": 186,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "11": {
+        "coefficient": 0.94,
+        "estimated": 0.94,
+        "targetHours": 1115,
+        "baseHours": 6408,
+        "targetDays": 183,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "12": {
+        "coefficient": 0.971,
+        "estimated": 0.971,
+        "targetHours": 1141,
+        "baseHours": 6626,
+        "targetDays": 185,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "17": {
+        "coefficient": 0.956,
+        "estimated": 0.956,
+        "targetHours": 1177,
+        "baseHours": 6671,
+        "targetDays": 186,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "25": {
+        "coefficient": 0.899,
+        "estimated": 0.899,
+        "targetHours": 1068,
+        "baseHours": 5901,
+        "targetDays": 180,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "26": {
+        "coefficient": 0.914,
+        "estimated": 0.914,
+        "targetHours": 1159,
+        "baseHours": 6586,
+        "targetDays": 179,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "28": {
+        "coefficient": 0.939,
+        "estimated": 0.939,
+        "targetHours": 1123,
+        "baseHours": 6110,
+        "targetDays": 171,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "50": {
+        "coefficient": 0.987,
+        "estimated": 0.987,
+        "targetHours": 1113,
+        "baseHours": 6397,
+        "targetDays": 176,
+        "baseDays": 303,
+        "apply": true,
+        "confidence": "оценка"
+      }
+    },
+    "heavy": {
+      "1": {
+        "coefficient": 0.841,
+        "estimated": 0.841,
+        "targetHours": 202,
+        "baseHours": 6003,
+        "targetDays": 72,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "7": {
+        "coefficient": 0.802,
+        "estimated": 0.802,
+        "targetHours": 205,
+        "baseHours": 6575,
+        "targetDays": 66,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "11": {
+        "coefficient": 0.88,
+        "estimated": 0.88,
+        "targetHours": 202,
+        "baseHours": 6408,
+        "targetDays": 67,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "12": {
+        "coefficient": 0.847,
+        "estimated": 0.847,
+        "targetHours": 209,
+        "baseHours": 6626,
+        "targetDays": 68,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "17": {
+        "coefficient": 0.824,
+        "estimated": 0.824,
+        "targetHours": 206,
+        "baseHours": 6671,
+        "targetDays": 67,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "25": {
+        "coefficient": 0.783,
+        "estimated": 0.783,
+        "targetHours": 187,
+        "baseHours": 5901,
+        "targetDays": 62,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "26": {
+        "coefficient": 0.829,
+        "estimated": 0.829,
+        "targetHours": 214,
+        "baseHours": 6573,
+        "targetDays": 75,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "28": {
+        "coefficient": 0.845,
+        "estimated": 0.845,
+        "targetHours": 189,
+        "baseHours": 5988,
+        "targetDays": 62,
+        "baseDays": 304,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "50": {
+        "coefficient": 0.923,
+        "estimated": 0.923,
+        "targetHours": 201,
+        "baseHours": 6397,
+        "targetDays": 61,
+        "baseDays": 303,
+        "apply": true,
+        "confidence": "оценка"
+      }
+    }
+  },
+  "season": {
+    "apply": false,
+    "coefficient": 1.0,
+    "confidence": "уже в базовом прогнозе",
+    "note": "Недельная сезонность и праздники уже входят в базовый прогноз. Повторный сезонный множитель не применяется."
+  },
+  "event": {
+    "apply": false,
+    "coefficient": 1.0,
+    "confidence": "эффект не оценён",
+    "note": "Нет подтверждённой доли перехода пассажиров с других маршрутов на трамвай."
+  },
+  "built": "2026-09-27"
+}
