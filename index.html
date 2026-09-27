@@ -92,11 +92,6 @@
                 <label>С<select id="hour-from" class="text-input compact" aria-label="Час начала"></select></label>
                 <label>по<select id="hour-to" class="text-input compact" aria-label="Час конца"></select></label>
               </div>
-              <label class="forecast-segment">Участок
-                <select id="forecast-segment" class="text-input compact">
-                  <option value="">весь маршрут</option>
-                </select>
-              </label>
               <div class="demand-head">
                 <div class="demand-now-row">
                   <div>
@@ -128,6 +123,7 @@
                       <option value="base">как в прогнозе</option>
                       <option value="rain">дождь</option>
                       <option value="heavy">сильный дождь</option>
+                      <option value="snow">снег</option>
                     </select>
                   </label>
                   <label>Сезон
@@ -208,8 +204,8 @@
     ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="./demand.js?v=20260927-fleet"></script>
-    <script src="./facts.js?v=20260927-station-card"></script>
-    <script src="./forecast.js?v=20260927-equal"></script>
-    <script src="./app.js?v=20260927-map"></script>
+    <script src="./facts.js?v=20260927-poi"></script>
+    <script src="./forecast.js?v=20260927-snow"></script>
+    <script src="./app.js?v=20260927-poi2"></script>
   </body>
 </html>

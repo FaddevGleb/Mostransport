@@ -65,6 +65,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!state.selectedId) return;
       const route = state.routes.find((item) => item.route_id === state.selectedId);
       if (route) renderDemand(route);
+      const stops = stopsForRoute(state.selectedId);
+      state.stationCards.forEach((card, stopId) => {
+        const stop = stops.find((item) => item.stop_id === stopId);
+        if (!stop || !route) return;
+        const station = TramFacts.stationFor(stop.stop_name, route.route_short_name, stop.stop_lat, stop.stop_lon);
+        fillStationCard(card, station, stop);
+      });
     }).catch(() => {});
   }
   if (window.TramForecast) {
@@ -439,7 +446,7 @@ function buildGtfsFeed(records) {
       route_short_name: first.routeId,
       route_long_name: first.routeName || `Трамвай ${first.routeId}`,
       route_type: 0,
-      route_color: routeColor(routeNumber),
+      route_color: routeColorFor(first.routeId, routeNumber),
       route_text_color: "FFFFFF",
       direction,
     });
@@ -843,8 +850,6 @@ function selectRoute(routeId) {
   $("#detail-name").textContent = route.route_long_name;
   $("#detail-stops").textContent = stops.length;
   $("#detail-length").textContent = `${routeDistance(stops).toFixed(1)} км`;
-  state.forecast.segment = "";
-  syncSegmentOptions(stops);
   renderDemand(route);
   renderStations(stops);
   $("#route-details").classList.remove("hidden");
@@ -874,7 +879,7 @@ function openStationCard(stopId, placement) {
   card.querySelector(".station-card-name").title = stop.stop_name;
   card.setAttribute("aria-label", stop.stop_name);
   document.body.appendChild(card);
-  fillStationCard(card, station);
+  fillStationCard(card, station, stop);
   state.stationCards.set(stopId, card);
   if (placement?.left && placement?.top) {
     card.style.left = placement.left;
@@ -888,21 +893,16 @@ function openStationCard(stopId, placement) {
   focusStationCard(stopId);
 }
 
-function fillStationCard(card, station) {
+function fillStationCard(card, station, stop) {
   const weatherValue = card.querySelector(".station-weather-value");
   const trafficValue = card.querySelector(".station-traffic-value");
   const pois = card.querySelector(".station-pois");
-  if (!station) {
-    weatherValue.textContent = "—";
-    trafficValue.textContent = "—";
-    pois.innerHTML = "";
-    return;
-  }
-  const temperature = station.temperature == null ? "—" : `${station.temperature > 0 ? "+" : ""}${station.temperature}°`;
-  weatherValue.textContent = temperature;
-  trafficValue.textContent = String(station.roads || 0);
-  const places = String(station.poiExamples || "").split(";").map((item) => item.trim()).filter(Boolean);
-  pois.innerHTML = places.map((place) => `<li>${escapeHtml(place)}</li>`).join("");
+  weatherValue.textContent = station?.temperature == null ? "—" : `${station.temperature > 0 ? "+" : ""}${station.temperature}°`;
+  trafficValue.textContent = station ? String(station.roads || 0) : "—";
+  const nearby = window.TramFacts && stop ? TramFacts.poisNear(stop.stop_lat, stop.stop_lon, 5, 500) : [];
+  pois.innerHTML = nearby.length
+    ? nearby.map((place) => `<li>${escapeHtml(place.name)}${place.label ? ` · ${escapeHtml(place.label)}` : ""}</li>`).join("")
+    : "<li>—</li>";
 }
 
 function placeStationCard(card, index) {
@@ -1011,6 +1011,7 @@ function renderDemand(route) {
   const vehicles = window.TramFacts && TramFacts.state.loaded ? TramFacts.fleetFor(route.route_short_name) : null;
   $("#fleet-count").textContent = vehicles == null ? "—" : String(vehicles);
   const factors = (window.TramFacts && TramFacts.state.loaded && TramFacts.contextFor(route.route_short_name)) || TramDemand.contextFor(route.route_short_name);
+  applyRoutePois(factors, route);
   $("#demand-context").innerHTML = factors.map((item) => `<article class="factor-card ${item.off ? "off" : ""}"><span class="factor-icon">${item.icon}</span><span class="factor-label">${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></article>`).join("");
   syncForecastControls();
   if (!window.TramForecast || (!TramForecast.state.loaded && !TramForecast.state.failed)) {
@@ -1144,20 +1145,7 @@ function syncForecastStopNote() {
   if (!note) return;
   const card = state.stationStopId ? state.stationCards.get(state.stationStopId) : null;
   const name = card?.querySelector(".station-card-name")?.textContent;
-  note.textContent = name
-    ? `Остановка «${name}»: прогноз доступен только для маршрута.`
-    : "Остановка или участок: отдельный прогноз посадок не рассчитан.";
-}
-
-function syncSegmentOptions(stops) {
-  const select = $("#forecast-segment");
-  const options = ['<option value="">весь маршрут</option>'].concat(stops.slice(0, -1).map((stop, index) => {
-    const label = `${stop.stop_name} — ${stops[index + 1].stop_name}`;
-    return `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`;
-  }));
-  select.innerHTML = options.join("");
-  if (![...select.options].some((option) => option.value === state.forecast.segment)) state.forecast.segment = "";
-  select.value = state.forecast.segment;
+  note.textContent = name ? `Остановка «${name}»: прогноз доступен только для маршрута.` : "";
 }
 
 function forecastChart(view, rows) {
@@ -1226,10 +1214,6 @@ function bindForecastControls() {
     state.forecast.hourTo = Number(event.target.value);
     refreshForecast();
   });
-  $("#forecast-segment").addEventListener("change", (event) => {
-    state.forecast.segment = event.target.value;
-    refreshForecast();
-  });
   $("#hour-slider").addEventListener("input", (event) => {
     state.forecast.selectedHour = Number(event.target.value);
     refreshForecast();
@@ -1287,7 +1271,6 @@ function downloadForecastCsv() {
   const route = state.routes.find((item) => item.route_id === state.selectedId);
   if (!route || !window.TramForecast?.state.loaded) return;
   const board = TramForecast.present(forecastView(route));
-  const segmentNote = state.forecast.segment ? `Участок без отдельного прогноза: ${state.forecast.segment}` : "Прогноз только для маршрута";
   const rows = board.rows.map((row) => ({
     период: row.period,
     маршрут: route.route_short_name,
@@ -1297,7 +1280,7 @@ function downloadForecastCsv() {
     единицы: "посадки",
     статус: row.baseValue == null ? "нет данных" : board.scenario.apply ? board.statusLabel : row.statusLabel,
     коэффициент: board.scenario.coefficient,
-    примечание: segmentNote,
+    примечание: "прогноз маршрута",
   }));
   rows.push({
     период: "итого",
@@ -1308,7 +1291,7 @@ function downloadForecastCsv() {
     единицы: "посадки",
     статус: board.statusLabel,
     коэффициент: board.scenario.coefficient,
-    примечание: segmentNote,
+    примечание: "прогноз маршрута",
   });
   const headers = Object.keys(rows[0] || { период: "" });
   const quote = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
@@ -1418,7 +1401,7 @@ function restoreForecast(forecast) {
   if (typeof forecast.segment === "string") state.forecast.segment = forecast.segment;
   if (forecast.trips === 0 || forecast.trips === 1 || forecast.trips === 2) state.forecast.trips = forecast.trips;
   const scenario = forecast.scenario || {};
-  if (scenario.weather === "base" || scenario.weather === "rain" || scenario.weather === "heavy") state.forecast.scenario.weather = scenario.weather;
+  if (scenario.weather === "base" || scenario.weather === "rain" || scenario.weather === "heavy" || scenario.weather === "snow") state.forecast.scenario.weather = scenario.weather;
   if (typeof scenario.eventOn === "boolean") state.forecast.scenario.eventOn = scenario.eventOn;
   if (typeof scenario.eventPlace === "string") state.forecast.scenario.eventPlace = scenario.eventPlace;
   if (typeof scenario.eventTime === "string") state.forecast.scenario.eventTime = scenario.eventTime;
@@ -1453,13 +1436,7 @@ function applySavedMapState() {
     syncHourChip();
     return;
   }
-  const segment = state.forecast.segment;
   selectRoute(route.route_id);
-  if (segment) {
-    state.forecast.segment = segment;
-    syncSegmentOptions(stopsForRoute(route.route_id));
-    renderDemand(route);
-  }
   restoreStationCards(saved.cards);
 }
 
@@ -1554,7 +1531,7 @@ function makeDemoFeed() {
     const coordinates = baseCoordinates.map(([lat, lon]) => [lat + driftLat, lon + driftLon]);
     const name = namedRoutes[number] || `${number} · трамвайная линия`;
     const routeId = `route_${routeIndex + 1}`, tripId = `trip_${routeIndex + 1}`, shapeId = `shape_${routeIndex + 1}`;
-    routes.push({ route_id: routeId, route_short_name: number, route_long_name: name, route_type: 0, route_color: routeColor(routeIndex), route_text_color: "FFFFFF", direction: "0" });
+    routes.push({ route_id: routeId, route_short_name: number, route_long_name: name, route_type: 0, route_color: routeColorFor(number, routeIndex), route_text_color: "FFFFFF", direction: "0" });
     trips.push({ route_id: routeId, service_id: "MOSCOW", trip_id: tripId, trip_headsign: name.split(" — ")[1] || name, direction_id: 0, shape_id: shapeId });
     coordinates.forEach(([lat, lon], index) => {
       const stopId = `stop_${routeIndex + 1}_${index + 1}`;
@@ -1582,6 +1559,21 @@ function number(value) { const parsed = Number(String(value ?? "").replace(",", 
 function inMoscow(lat, lon) { return lat > 54.2 && lat < 56.6 && lon > 35.2 && lon < 40.5; }
 function slug(value) { return clean(value).toLowerCase().replaceAll(/[^a-zа-яё0-9]+/gi, "_"); }
 function formatTime(minutes) { return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}:00`; }
+function routeColorFor(routeId, index) {
+  if (String(routeId) === "50") return "8a5a2b";
+  return routeColor(index);
+}
+
+function applyRoutePois(factors, route) {
+  if (!Array.isArray(factors) || !window.TramFacts || !TramFacts.state.pois?.length) return;
+  const factor = factors.find((item) => item.label === "Места");
+  if (!factor) return;
+  const summary = TramFacts.poiSummary(route.route_id, stopsForRoute(route.route_id));
+  factor.value = String(summary.count);
+  factor.off = summary.count === 0;
+  factor.title = summary.example ? `${summary.example}. В 300 м от остановок.` : "В 300 м от остановок точек нет";
+}
+
 function routeColor(index) {
   const hue = (index * 137.508) % 360;
   const saturation = 84 / 100;

@@ -187,6 +187,98 @@
         "apply": true,
         "confidence": "оценка"
       }
+    },
+    "snow": {
+      "1": {
+        "coefficient": 1.064,
+        "estimated": 1.064,
+        "targetHours": 220,
+        "baseHours": 5984,
+        "targetDays": 42,
+        "baseDays": 303,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "7": {
+        "coefficient": 1.079,
+        "estimated": 1.079,
+        "targetHours": 235,
+        "baseHours": 6365,
+        "targetDays": 38,
+        "baseDays": 303,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "11": {
+        "coefficient": 0.991,
+        "estimated": 0.991,
+        "targetHours": 212,
+        "baseHours": 6204,
+        "targetDays": 38,
+        "baseDays": 303,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "12": {
+        "coefficient": 1.064,
+        "estimated": 1.064,
+        "targetHours": 214,
+        "baseHours": 6415,
+        "targetDays": 39,
+        "baseDays": 303,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "17": {
+        "coefficient": 0.977,
+        "estimated": 0.977,
+        "targetHours": 237,
+        "baseHours": 6440,
+        "targetDays": 38,
+        "baseDays": 303,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "25": {
+        "coefficient": 0.927,
+        "estimated": 0.927,
+        "targetHours": 212,
+        "baseHours": 5692,
+        "targetDays": 37,
+        "baseDays": 303,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "26": {
+        "coefficient": 1.044,
+        "estimated": 1.044,
+        "targetHours": 237,
+        "baseHours": 6355,
+        "targetDays": 43,
+        "baseDays": 303,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "28": {
+        "coefficient": 1.127,
+        "estimated": 1.127,
+        "targetHours": 210,
+        "baseHours": 5906,
+        "targetDays": 36,
+        "baseDays": 303,
+        "apply": true,
+        "confidence": "оценка"
+      },
+      "50": {
+        "coefficient": 1.025,
+        "estimated": 1.025,
+        "targetHours": 216,
+        "baseHours": 6197,
+        "targetDays": 38,
+        "baseDays": 302,
+        "apply": true,
+        "confidence": "оценка"
+      }
     }
   },
   "season": {

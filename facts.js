@@ -1,6 +1,32 @@
 /* global window, TramDemand */
 const TramFacts = (() => {
-  const state = { routes: [], stations: [], events: [], fleet: new Map(), fleetMeta: null, byNumber: new Map(), loaded: false };
+  const state = { routes: [], stations: [], events: [], pois: [], fleet: new Map(), fleetMeta: null, byNumber: new Map(), loaded: false };
+  const poiSummaryCache = new Map();
+  const POI_LABELS = {
+    shop_convenience: "магазин",
+    shop_supermarket: "супермаркет",
+    shop_mall: "торговый центр",
+    shop_department_store: "универмаг",
+    kindergarten: "детский сад",
+    school: "школа",
+    college: "колледж",
+    university: "университет",
+    clinic: "поликлиника",
+    hospital: "больница",
+    park: "парк",
+    theme_park: "парк",
+    metro_entrance: "метро",
+    metro_station: "метро",
+    sports_centre: "спорт",
+    fitness_centre: "фитнес",
+    attraction: "достопримечательность",
+    museum: "музей",
+    gallery: "галерея",
+    railway_station: "вокзал",
+    stadium: "стадион",
+    zoo: "зоопарк",
+    bus_station: "автовокзал",
+  };
   let pending = null;
 
   function parseCsv(text) {
@@ -63,7 +89,8 @@ const TramFacts = (() => {
       fetch("./data/enrichment/stations_averaged.csv", { cache: "no-store" }).then((response) => response.text()),
       fetch("./data/enrichment/events_nearest_station.csv", { cache: "no-store" }).then((response) => response.text()),
       fetch("./data/enrichment/tram_fleet.json", { cache: "no-store" }).then((response) => response.json()),
-    ]).then(([routesText, stationsText, eventsText, fleetJson]) => {
+      fetch("./moscow_pois_overpass.csv", { cache: "no-store" }).then((response) => response.text()),
+    ]).then(([routesText, stationsText, eventsText, fleetJson, poisText]) => {
       state.routes = parseCsv(routesText).map((row) => ({
         number: String(row.route_number),
         name: row.route_name,
@@ -104,6 +131,13 @@ const TramFacts = (() => {
         weather: row["погода"],
       }));
       state.events = parseCsv(eventsText);
+      state.pois = parseCsv(poisText).flatMap((row) => {
+        const name = String(row.name || "").trim();
+        const lat = asNumber(row.lat);
+        const lon = asNumber(row.lon);
+        if (!name || name === "Без названия" || lat == null || lon == null) return [];
+        return [{ id: row.poi_id || `${lat},${lon}`, name, type: row.type || "", label: POI_LABELS[row.type] || "", lat, lon }];
+      });
       state.fleetMeta = fleetJson;
       state.fleet = new Map(Object.entries(fleetJson.routes || {}).map(([number, row]) => [String(number), row.vehicles]));
       state.loaded = true;
@@ -198,6 +232,36 @@ const TramFacts = (() => {
     return Math.hypot(dx, dy);
   }
 
+  function poisNear(lat, lon, limit = 5, radiusMeters = 500) {
+    if (lat == null || lon == null || !state.pois.length) return [];
+    const found = [];
+    state.pois.forEach((poi) => {
+      const distance = stationDistance(poi, lat, lon);
+      if (distance <= radiusMeters) found.push({ ...poi, distance });
+    });
+    found.sort((left, right) => left.distance - right.distance);
+    return found.slice(0, limit);
+  }
+
+  function poiSummary(routeId, stops) {
+    const key = String(routeId);
+    if (poiSummaryCache.has(key)) return poiSummaryCache.get(key);
+    const points = (stops || []).filter((stop) => stop.stop_lat != null && stop.stop_lon != null);
+    const seen = new Set();
+    let example = "";
+    if (points.length && state.pois.length) {
+      state.pois.forEach((poi) => {
+        const near = points.some((stop) => stationDistance(poi, stop.stop_lat, stop.stop_lon) <= 300);
+        if (!near || seen.has(poi.id)) return;
+        seen.add(poi.id);
+        if (!example) example = poi.name;
+      });
+    }
+    const summary = { count: seen.size, example };
+    poiSummaryCache.set(key, summary);
+    return summary;
+  }
+
   function stationFor(name, routeNumber, lat, lon) {
     const key = normalizeName(name);
     const matches = state.stations.filter((station) => normalizeName(station.name) === key);
@@ -214,7 +278,7 @@ const TramFacts = (() => {
     return "ok";
   }
 
-  return { load, contextFor, fleetFor, stationFor, toneForDensity, get state() { return state; } };
+  return { load, contextFor, fleetFor, stationFor, poisNear, poiSummary, toneForDensity, get state() { return state; } };
 })();
 
 window.TramFacts = TramFacts;

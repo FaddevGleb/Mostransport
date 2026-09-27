@@ -228,7 +228,7 @@ const TramForecast = (() => {
   }
 
   function resolveScenario(route, scenario) {
-    const weatherName = scenario.weather === "heavy" ? "heavy" : scenario.weather === "rain" ? "rain" : null;
+    const weatherName = scenario.weather === "heavy" ? "heavy" : scenario.weather === "rain" ? "rain" : scenario.weather === "snow" ? "snow" : null;
     const weather = weatherName ? state.effects?.weather?.[weatherName]?.[String(route)] : null;
     const eventManual = scenario.eventOn ? parseManual(scenario.eventCoeff) : null;
     const seasonManual = scenario.seasonMode === "custom" ? parseManual(scenario.seasonCoeff) : null;
@@ -250,7 +250,7 @@ const TramForecast = (() => {
       };
     }
     if (weather?.apply) {
-      const label = weatherName === "heavy" ? "Сильный дождь" : "Дождь";
+      const label = weatherName === "heavy" ? "Сильный дождь" : weatherName === "snow" ? "Снег" : "Дождь";
       return {
         coefficient: weather.coefficient,
         confidence: weather.confidence,
